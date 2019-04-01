@@ -7,12 +7,14 @@ public class Navire {
     protected String nom;
     protected int taille;
     protected int id;
+    protected boolean isHorizontal;
     View view;
 
-    protected Navire(String nom, int taille){
-        this.nom = nom;
-        this.taille = taille;
-
+    protected Navire(String _nom, int _taille, int _id){
+        nom = _nom;
+        taille = _taille;
+        id = _id;
+        isHorizontal = true;
     }
 
     public void setId(int _id)
@@ -23,5 +25,17 @@ public class Navire {
     public void setView(View v)
     {
         view = v;
+    }
+
+    public View getView() {
+        return view;
+    }
+
+    public void setOrientationHorizontal(boolean orientation) {
+        isHorizontal = orientation;
+    }
+
+    public boolean getOrientationHorizontal() {
+        return isHorizontal;
     }
 }

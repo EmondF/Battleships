@@ -2,8 +2,8 @@ package com.example.gabmi.battleship;
 
 public class AircraftCarrier extends Navire {
 
-    public AircraftCarrier(){
-        super("Aircraft Carrier", 5);
+    public AircraftCarrier(int id){
+        super("Aircraft Carrier", 5, id);
     }
 
     @Override

@@ -26,7 +26,7 @@ public class MyShipsView extends View {
         super(context, attrs);
         bsGrid = new GridCell[10][10];
         initGrid();
-        bsGrid[5][5].hasShip = true;
+        //bsGrid[5][5].hasShip = true;
         noHit = new ArrayList<>();
         HitCell = new ArrayList<>();
         noHitPaint = new Paint();
@@ -48,7 +48,7 @@ public class MyShipsView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        drawNoHit(canvas);
+        //drawNoHit(canvas);
         drawShip(canvas);
     }
 
@@ -105,61 +105,91 @@ public class MyShipsView extends View {
 
     public void findCellPlacement(float posX, float posY, Navire currentship) {
 
-
         Log.i("Ship", currentship.nom);
         float gridFraction = (float)gridSize/10;
         int cellX = (int)(posX/gridFraction); //indice de la cellule
         int cellY = (int)(posY/gridFraction);
-        testCellPlacement( cellX,  cellY, currentship);
-        //testCell(bsGrid[cellX][cellY]);
+        testCellPlacement(cellX,  cellY, currentship, currentship.isHorizontal);
         bsGrid[cellX][cellY].position[0] = (int)gridFraction*cellX; //position en pixel de lindice de la cellule
         bsGrid[cellX][cellY].position[1] = (int)gridFraction*cellY;
     }
 
-    private void testCellPlacement(int CellX, int CellY , Navire currentship) {
+    private void testCellPlacement(int CellX, int CellY , Navire currentship, boolean isHorizontal) {
 
-        GridCell currentCell = bsGrid[CellX][CellY];;
+        Log.i("Tag", "CellX : "+CellX);
+        Log.i("Tag", "CellY : "+CellY);
+        GridCell currentCell;
         boolean isOk = true;
         float gridFraction = (float)gridSize/10;
-        int shipsSize = currentship.taille;
+        int shipSize = currentship.taille;
 
-        ImageButton ship = currentship.view.findViewById(currentship.id) ;
+        ImageButton ship = currentship.view.findViewById(currentship.id);
 
-        for (int i =0; i< shipsSize; i++ )
-        {
-            if (CellX+i <= 9)
-            {
-                currentCell = bsGrid[CellX+i][CellY];
-                if(currentCell.hasShip)
-                {
-                    isOk = false;
-                    break;
+        if (isHorizontal) {
+            //L'orientation du bateau est horizontale
+            if (CellX+shipSize <= 10) {
+                for (int i = 0; i< shipSize; i++ ) {
+                    currentCell = bsGrid[CellX + i][CellY];
+                    if (currentCell.hasShip) {
+                        isOk = false;
+                        Log.i("Tag", "Hit autre bateau sur cell X : "+currentCell.position[0]+" Y : "+currentCell.position[1]);
+                        break;
+                    }
                 }
-
-            }else
+            }
+            else {
                 isOk = false;
-
+                Log.i("Tag", "Depassement grid, Cell clicked = "+ CellX +" Ship size = " + shipSize);
+            }
+            if(isOk) {
+                ship.setVisibility(getRootView().GONE);
+                for (int i =0; i< shipSize; i++ ) {
+                    currentCell = bsGrid[CellX+i][CellY];
+                    currentCell.position[0] = (int)gridFraction*(CellX+i); //position en pixel de lindice de la cellule
+                    currentCell.position[1] = (int)gridFraction*(CellY);
+                    Ships.add(currentCell);
+                    currentCell.hasShip = true;
+                }
+            }
         }
+        else {
+            //L'orientation du bateau est verticale
+            if (CellY+shipSize <= 10)  {
+                for (int i = 0; i< shipSize; i++ ) {
+                    currentCell = bsGrid[CellX][CellY+i];
+                    if(currentCell.hasShip) {
+                        isOk = false;
+                        Log.i("Tag", "Hit autre bateau sur cell X : "+currentCell.position[0]+" Y : "+currentCell.position[1]);
+                        break;
+                    }
+                }
+            }
+            else {
+                isOk = false;
+                Log.i("Tag", "Depassement grid, Cell clicked = "+ CellY +" Ship size = " + shipSize);
+            }
 
 
-       if(isOk == true ) {
 
-           ship.setVisibility(getRootView().GONE);
-
-            for (int i =0; i< shipsSize; i++ )
-            {
-
-                currentCell = bsGrid[CellX+i][CellY];
-                currentCell.position[0] = (int)gridFraction*(CellX+i); //position en pixel de lindice de la cellule
-                currentCell.position[1] = (int)gridFraction*CellY;
-                Ships.add(currentCell);
-                currentCell.hasShip = true;
-
-           }
-
+            if(isOk) {
+                ship.setVisibility(getRootView().GONE);
+                for (int i =0; i< shipSize; i++ ) {
+                    currentCell = bsGrid[CellX][CellY+i];
+                    currentCell.position[0] = (int)gridFraction*(CellX); //position en pixel de lindice de la cellule
+                    currentCell.position[1] = (int)gridFraction*(CellY+i);
+                    Ships.add(currentCell);
+                    currentCell.hasShip = true;
+                }
+            }
         }
-
         invalidate(); //pour caller onDraw
+        if (isOk) {
+            Log.i("Tag", "true");
+        }
+        else {
+            Log.i("Tag", "false");
+        }
+
     }
 
 }

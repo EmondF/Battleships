@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ShipPlacement"
-    android:background="@drawable/battleship_bg">>
+    android:background="@drawable/battleship_bg">
 
     <LinearLayout
         android:id="@+id/wrapper"
@@ -16,7 +16,6 @@
         android:layout_marginTop="32dp"
         android:layout_marginEnd="32dp"
         android:layout_marginRight="32dp"
-        android:layout_marginBottom="32dp"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -33,35 +32,108 @@
 
         </com.example.gabmi.battleship.MyShipsView>
 
-        <TableLayout
+        <LinearLayout
             android:id="@+id/choixBateaux"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="0dp"
+            android:layout_weight="70"
+            android:orientation="vertical"
+            android:background="@color/Blue">
 
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="3">
 
-                <ImageButton
-                    android:id="@+id/Destroyer"
-                    android:layout_width="69dp"
-                    android:layout_height="60dp"
-                    android:background="@drawable/ship1"
-                    android:onClick="SelectDestroyer" />
-            </TableRow>
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="2"
+                        android:gravity="center">
 
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                        <ImageButton
+                            android:id="@+id/Destroyer"
+                            android:layout_width="70dp"
+                            android:layout_height="60dp"
+                            android:background="@drawable/destroyer"
+                            android:onClick="SelectShip" />
+                    </LinearLayout>
 
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="3"
+                        android:gravity="center">
 
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-        </TableLayout>
+                        <ImageButton
+                            android:id="@+id/Submarine"
+                            android:layout_width="105dp"
+                            android:layout_height="60dp"
+                            android:background="@drawable/destroyer"
+                            android:onClick="SelectShip" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="3"
+                        android:gravity="center">
+
+                        <ImageButton
+                            android:id="@+id/Cruiser"
+                            android:layout_width="105dp"
+                            android:layout_height="60dp"
+                            android:background="@drawable/destroyer"
+                            android:onClick="SelectShip" />
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="5">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="4"
+                        android:gravity="center">
+
+                        <ImageButton
+                            android:id="@+id/Battleship"
+                            android:layout_width="140dp"
+                            android:layout_height="60dp"
+                            android:background="@drawable/destroyer"
+                            android:onClick="SelectShip"/>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="4"
+                        android:gravity="center">
+
+                        <ImageButton
+                            android:id="@+id/AircraftCarrier"
+                            android:layout_width="175dp"
+                            android:layout_height="60dp"
+                            android:background="@drawable/destroyer"
+                            android:onClick="SelectShip"/>
+                    </LinearLayout>
+
+
+                </LinearLayout>
+        </LinearLayout>
+        
+        <Button
+            android:id="@+id/rotateBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/rotate_ship"
+            android:onClick="ChangeShipOrientation"
+            android:visibility="invisible"/>
 
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

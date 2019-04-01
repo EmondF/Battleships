@@ -54,7 +54,7 @@ public class Connexion extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connexion);
-        Log.i("Tag", "onCreate");
+        Log.i("Tag", "Connexion - onCreate()");
 
         pairedAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
         otherAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
@@ -105,7 +105,7 @@ public class Connexion extends AppCompatActivity {
     @Override
     public void onStart() {
         super.onStart();
-        Log.i("Tag", "onStart");
+        Log.i("Tag", "Connexion - onStart()");
         btSocket = null;
         registerReceiver(mReceiverActionFound, filter_found);
         registerReceiver(mReceiverActionDiscoveryFinished, filter_discoveryFinished);
@@ -339,6 +339,7 @@ public class Connexion extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        Log.i("Tag", "Connexion - onStop()");
         try {
             unregisterReceiver(mReceiverActionFound);
         } catch(IllegalArgumentException e) {
@@ -349,5 +350,10 @@ public class Connexion extends AppCompatActivity {
         } catch(IllegalArgumentException e) {
             Log.e("Tag", "Unregistering receiver mReceiverActionDiscoveryFinished failed", e);
         }
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.i("Tag", "Connexion - onDestroy()");
     }
 }

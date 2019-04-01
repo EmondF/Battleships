@@ -16,4 +16,5 @@
     <string name="connexion_failed">Connexion has failed</string>
     <string name="make_discoverable">Make Discoverable</string>
     <string name="Ship1">Ship1</string>
+    <string name="rotate_ship">Rotate Ship</string>
 </resources>
