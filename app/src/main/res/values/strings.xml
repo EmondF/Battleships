@@ -17,4 +17,5 @@
     <string name="make_discoverable">Make Discoverable</string>
     <string name="Ship1">Ship1</string>
     <string name="rotate_ship">Rotate Ship</string>
+    <string name="commencer_la_partie">Commencer la partie</string>
 </resources>

@@ -16,7 +16,7 @@ import java.util.ArrayList;
 public class MyShipsView extends View {
 
     private GridCell[][] bsGrid;
-    private int gridSize;
+    public static int gridSize;
     private ArrayList<GridCell> noHit;
     private ArrayList<GridCell> HitCell;
     private ArrayList<GridCell> Ships;
@@ -24,6 +24,7 @@ public class MyShipsView extends View {
 
     public MyShipsView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        Log.i("Tag", "MyShipsView - Constructeur");
         bsGrid = new GridCell[10][10];
         initGrid();
         //bsGrid[5][5].hasShip = true;
@@ -40,6 +41,7 @@ public class MyShipsView extends View {
     @Override
     public void onMeasure(int widthSpec, int heightSpec) {
         super.onMeasure(widthSpec, heightSpec);
+        Log.i("Tag", "MyShipsView - onMeasure()");
         gridSize = Math.min(getMeasuredWidth(), getMeasuredHeight());
         setMeasuredDimension(gridSize, gridSize);
     }
@@ -52,6 +54,11 @@ public class MyShipsView extends View {
         drawShip(canvas);
     }
 
+    public ArrayList<GridCell> GetShipList() {
+        return Ships;
+    }
+
+    //Retourne l'objet GridCell correspondant à la position en pixel XY donnée
     public GridCell getCell(float posX, float posY) {
         float gridFraction = (float)gridSize/10;
         int cellX = (int)(posX/gridFraction); //indice de la cellule
@@ -59,6 +66,7 @@ public class MyShipsView extends View {
         return bsGrid[cellX][cellY];
     }
 
+    //Remove tout le ship de la GridCell cliquée, donnée en entrée
     public void removeShip(GridCell cellClicked) {
         float gridFraction = (float)gridSize/10;
         int coordX = cellClicked.coordonnees[0];
@@ -97,6 +105,7 @@ public class MyShipsView extends View {
         invalidate();
     }
 
+    //Retourne l'index du tableau "Ships" qui contient la case aux coordonnées en entrée
     public int GetCellIndexInShipsArray(int coordX, int coordY) {
         for (int i=0; i<Ships.size(); i++) {
             if (Ships.get(i).coordonnees[0] == coordX && Ships.get(i).coordonnees[1] == coordY) {
@@ -116,6 +125,7 @@ public class MyShipsView extends View {
         bsGrid[cellX][cellY].position[1] = cellY;
     }
 
+    //Initier la grid avec des GridCells vides
     private void initGrid() {
         for(int i = 0; i < 10; i++) {
             for(int j = 0; j < 10; j++) {
@@ -147,6 +157,7 @@ public class MyShipsView extends View {
         }
     }
 
+    //Redessine tous les ships actuels dans le tableau "Ships"
     private void drawShip(Canvas canvas){
 
         int sideLength = gridSize/10;
@@ -161,23 +172,18 @@ public class MyShipsView extends View {
         }
     }
 
-    public void findCellPlacement(float posX, float posY, Navire currentship) {
+    //
+    public boolean findCellPlacement(float posX, float posY, Navire currentship) {
 
         Log.i("Ship", currentship.nom);
         float gridFraction = (float)gridSize/10;
         int cellX = (int)(posX/gridFraction); //indice de la cellule
         int cellY = (int)(posY/gridFraction);
-        testCellPlacement(cellX,  cellY, currentship, currentship.isHorizontal);
-        //bsGrid[cellX][cellY].position[0] = (int)gridFraction*cellX; //position en pixel de lindice de la cellule
-        //bsGrid[cellX][cellY].position[1] = (int)gridFraction*cellY;
-        //bsGrid[cellX][cellY].coordX = cellX;
-        //bsGrid[cellX][cellY].coordY = cellY;
+         return testCellPlacement(cellX,  cellY, currentship, currentship.isHorizontal);
     }
 
-    private void testCellPlacement(int CellX, int CellY , Navire currentship, boolean isHorizontal) {
+    private boolean testCellPlacement(int CellX, int CellY , Navire currentship, boolean isHorizontal) {
 
-        Log.i("Tag", "CellX : "+CellX);
-        Log.i("Tag", "CellY : "+CellY);
         GridCell currentCell;
         boolean isOk = true;
         float gridFraction = (float)gridSize/10;
@@ -247,6 +253,7 @@ public class MyShipsView extends View {
             }
         }
         invalidate(); //pour caller onDraw
+        return isOk;
     }
 
 }

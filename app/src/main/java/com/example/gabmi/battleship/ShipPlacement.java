@@ -14,6 +14,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class ShipPlacement extends AppCompatActivity  implements View.OnTouchListener {
 
@@ -26,7 +27,7 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
 
     Navire SelectedShip;
     MyShipsView myShipsRef;
-    boolean ShipPlaced;
+    int shipsPlaced;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,14 +37,12 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
         myShipsRef = findViewById(R.id.myShipsView);
         myShipsRef.setOnTouchListener(this);
 
-
         myDestroyer = new Destroyer(R.id.Destroyer, findViewById(R.id.Destroyer));
         mySubmarine = new Submarine(R.id.Submarine, findViewById(R.id.Submarine));
         myCruiser = new Cruiser(R.id.Cruiser, findViewById(R.id.Cruiser));
         myBattleship = new Battleship(R.id.Battleship, findViewById(R.id.Battleship));
         myAircraftCarrier = new AircraftCarrier(R.id.AircraftCarrier, findViewById(R.id.AircraftCarrier));
-
-        ShipPlaced = false;
+        shipsPlaced = 0;
     }
 
     @Override
@@ -52,18 +51,30 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
         super.onStart();
     }
 
-
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN){
             if (SelectedShip != null) {
-                myShipsRef.findCellPlacement(event.getX(), event.getY(), SelectedShip);
-                DeselectSelectedShip();
+                //Place ship
+                if (myShipsRef.findCellPlacement(event.getX(), event.getY(), SelectedShip)) {
+                    DeselectSelectedShip();
+                    shipsPlaced++;
+                    if (shipsPlaced == 5) {
+                        findViewById(R.id.StartBtn).setVisibility(View.VISIBLE);
+                        findViewById(R.id.choixBateaux).setVisibility(View.GONE);
+                    }
+                }
             }
             else {
+                //Remove placed ship
                 GridCell cell = myShipsRef.getCell(event.getX(), event.getY());
                 if (cell.hasShip) {
                      myShipsRef.removeShip(cell);
+                     shipsPlaced--;
+                     if (shipsPlaced == 4) {
+                         findViewById(R.id.StartBtn).setVisibility(View.GONE);
+                         findViewById(R.id.choixBateaux).setVisibility(View.VISIBLE);
+                     }
                 }
             }
         }
@@ -165,6 +176,15 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
         //Swap sa hauteur et sa largeur pour que la nouvelle image apparaisse correctement(rotate)
         LinearLayout.LayoutParams newLayoutParams = new LinearLayout.LayoutParams(tmpLayoutHeight, tmpLayoutWidth);
         shipImBtn.setLayoutParams(newLayoutParams);
+    }
+
+    public void StartGame(View v) {
+        ArrayList<GridCell> shipList = myShipsRef.GetShipList();
+        //À Faire
+        //Envoyer le data des ships a ladversaire
+        //Recevoir le data des ships de ladversaire
+        //Lancer lautre activité en chargeant les 2 datas dans les 2 grids
+        //Commencer la partie
     }
 
     @Override

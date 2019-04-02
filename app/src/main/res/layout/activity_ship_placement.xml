@@ -26,11 +26,17 @@
             android:id="@+id/myShipsView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="32dp"
             android:background="@drawable/battleship_grid"
             android:orientation="vertical">
-
         </com.example.gabmi.battleship.MyShipsView>
+
+        <ImageButton
+            android:id="@+id/rotateBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="ChangeShipOrientation"
+            android:src="@drawable/baseline_cached_black_18dp"
+            android:visibility="invisible"/>
 
         <LinearLayout
             android:id="@+id/choixBateaux"
@@ -40,55 +46,55 @@
             android:orientation="vertical"
             android:background="@color/Blue">
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="3"
+                android:baselineAligned="false">
+
                 <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="3">
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="2"
+                    android:gravity="center">
 
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="2"
-                        android:gravity="center">
-
-                        <ImageButton
-                            android:id="@+id/Destroyer"
-                            android:layout_width="70dp"
-                            android:layout_height="60dp"
-                            android:background="@drawable/destroyer"
-                            android:onClick="SelectShip" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="3"
-                        android:gravity="center">
-
-                        <ImageButton
-                            android:id="@+id/Submarine"
-                            android:layout_width="105dp"
-                            android:layout_height="60dp"
-                            android:background="@drawable/destroyer"
-                            android:onClick="SelectShip" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="3"
-                        android:gravity="center">
-
-                        <ImageButton
-                            android:id="@+id/Cruiser"
-                            android:layout_width="105dp"
-                            android:layout_height="60dp"
-                            android:background="@drawable/destroyer"
-                            android:onClick="SelectShip" />
-                    </LinearLayout>
-
-
+                    <ImageButton
+                        android:id="@+id/Destroyer"
+                        android:layout_width="70dp"
+                        android:layout_height="60dp"
+                        android:background="@drawable/destroyer"
+                        android:onClick="SelectShip" />
                 </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="3"
+                    android:gravity="center">
+
+                    <ImageButton
+                        android:id="@+id/Submarine"
+                        android:layout_width="105dp"
+                        android:layout_height="60dp"
+                        android:background="@drawable/destroyer"
+                        android:onClick="SelectShip" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="3"
+                    android:gravity="center">
+
+                    <ImageButton
+                        android:id="@+id/Cruiser"
+                        android:layout_width="105dp"
+                        android:layout_height="60dp"
+                        android:background="@drawable/destroyer"
+                        android:onClick="SelectShip" />
+                </LinearLayout>
+
+            </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -112,7 +118,7 @@
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
-                        android:layout_weight="4"
+                        android:layout_weight="5"
                         android:gravity="center">
 
                         <ImageButton
@@ -121,19 +127,21 @@
                             android:layout_height="60dp"
                             android:background="@drawable/destroyer"
                             android:onClick="SelectShip"/>
+
                     </LinearLayout>
-
-
                 </LinearLayout>
         </LinearLayout>
         
         <Button
-            android:id="@+id/rotateBtn"
+            android:id="@+id/StartBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/rotate_ship"
-            android:onClick="ChangeShipOrientation"
-            android:visibility="invisible"/>
+            android:textSize="25sp"
+            android:text = "@string/commencer_la_partie"
+            android:onClick="StartGame"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            />
 
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>
