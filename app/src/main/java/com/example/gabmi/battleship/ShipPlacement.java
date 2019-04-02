@@ -37,11 +37,11 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
         myShipsRef.setOnTouchListener(this);
 
 
-        myDestroyer = new Destroyer(R.id.Destroyer);
-        mySubmarine = new Submarine(R.id.Submarine);
-        myCruiser = new Cruiser(R.id.Cruiser);
-        myBattleship = new Battleship(R.id.Battleship);
-        myAircraftCarrier = new AircraftCarrier(R.id.AircraftCarrier);
+        myDestroyer = new Destroyer(R.id.Destroyer, findViewById(R.id.Destroyer));
+        mySubmarine = new Submarine(R.id.Submarine, findViewById(R.id.Submarine));
+        myCruiser = new Cruiser(R.id.Cruiser, findViewById(R.id.Cruiser));
+        myBattleship = new Battleship(R.id.Battleship, findViewById(R.id.Battleship));
+        myAircraftCarrier = new AircraftCarrier(R.id.AircraftCarrier, findViewById(R.id.AircraftCarrier));
 
         ShipPlaced = false;
     }
@@ -60,7 +60,12 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
                 myShipsRef.findCellPlacement(event.getX(), event.getY(), SelectedShip);
                 DeselectSelectedShip();
             }
-
+            else {
+                GridCell cell = myShipsRef.getCell(event.getX(), event.getY());
+                if (cell.hasShip) {
+                     myShipsRef.removeShip(cell);
+                }
+            }
         }
         return false;
     }
@@ -112,9 +117,7 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
                 SelectedShip = myAircraftCarrier;
                 break;
         }
-        if (SelectedShip.getView() == null) {
-            SelectedShip.setView(view);
-        }
+
         if (SelectedShip.getOrientationHorizontal()) {
             view.setBackgroundResource(R.drawable.destroyer_selected);
         }

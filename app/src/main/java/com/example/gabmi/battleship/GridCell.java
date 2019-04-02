@@ -4,14 +4,31 @@ public class GridCell {
 
     public boolean hasShip;
     public boolean hasBeenClicked;
-    public int[] position;
+    public float[] position;
+    public int[] coordonnees;
     Navire navireRef;
 
-    public GridCell() {
+    public GridCell(int coordX, int coordY) {
         hasShip = false;
-        position = new int[]{0, 0};
-        navireRef = null;
         hasBeenClicked = false;
+        position = new float[]{0, 0};
+        coordonnees = new int[]{coordX, coordY};
+        navireRef = null;
+    }
+
+    public GridCell(boolean _hasShip,
+                    boolean _hasBeenClicked,
+                    float positionX,
+                    float positionY,
+                    int coordX,
+                    int coordY,
+                    Navire _navireRef)
+    {
+        hasShip = _hasShip;
+        hasBeenClicked = _hasBeenClicked;
+        position = new float[]{positionX, positionY};
+        coordonnees = new int[]{coordX, coordY};
+        navireRef = _navireRef;
     }
 
 }

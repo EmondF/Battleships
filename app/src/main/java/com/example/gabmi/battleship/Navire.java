@@ -7,13 +7,15 @@ public class Navire {
     protected String nom;
     protected int taille;
     protected int id;
+    protected View view;
     protected boolean isHorizontal;
-    View view;
 
-    protected Navire(String _nom, int _taille, int _id){
+
+    protected Navire(String _nom, int _taille, int _id, View _view){
         nom = _nom;
         taille = _taille;
         id = _id;
+        view = _view;
         isHorizontal = true;
     }
 

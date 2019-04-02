@@ -52,20 +52,74 @@ public class MyShipsView extends View {
         drawShip(canvas);
     }
 
+    public GridCell getCell(float posX, float posY) {
+        float gridFraction = (float)gridSize/10;
+        int cellX = (int)(posX/gridFraction); //indice de la cellule
+        int cellY = (int)(posY/gridFraction);
+        return bsGrid[cellX][cellY];
+    }
+
+    public void removeShip(GridCell cellClicked) {
+        float gridFraction = (float)gridSize/10;
+        int coordX = cellClicked.coordonnees[0];
+        int coordY = cellClicked.coordonnees[1];
+
+        Navire navireClicked = cellClicked.navireRef;
+        boolean horizontal = navireClicked.isHorizontal;
+        String nom = navireClicked.nom;
+
+        navireClicked.getView().setVisibility(View.VISIBLE);
+
+        Log.i("Tag", "Before remove : Ships : "+Ships.size());
+        if (horizontal) {
+            for (int i=0; i<10; i++) {
+                if (bsGrid[i][coordY].hasShip) {
+                    if (bsGrid[i][coordY].navireRef.nom.equals(nom)) {
+                        bsGrid[i][coordY].navireRef = null;
+                        bsGrid[i][coordY].hasShip = false;
+                        Ships.remove(GetCellIndexInShipsArray(i, coordY));
+                    }
+                }
+            }
+        }
+        else {
+            for (int i=0; i<10; i++) {
+                if (bsGrid[coordX][i].hasShip) {
+                    if (bsGrid[coordX][i].navireRef.nom.equals(nom)) {
+                        bsGrid[coordX][i].navireRef = null;
+                        bsGrid[coordX][i].hasShip = false;
+                        Ships.remove(GetCellIndexInShipsArray(coordX, i));
+                    }
+                }
+            }
+        }
+        Log.i("Tag", "After remove : Ships : "+Ships.size());
+        invalidate();
+    }
+
+    public int GetCellIndexInShipsArray(int coordX, int coordY) {
+        for (int i=0; i<Ships.size(); i++) {
+            if (Ships.get(i).coordonnees[0] == coordX && Ships.get(i).coordonnees[1] == coordY) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     //Savoir quelle cellule on a touch
     public void findCell(float posX, float posY) {
         float gridFraction = (float)gridSize/10;
         int cellX = (int)(posX/gridFraction); //indice de la cellule
         int cellY = (int)(posY/gridFraction);
         testCell(bsGrid[cellX][cellY]);
-        bsGrid[cellX][cellY].position[0] = (int)gridFraction*cellX; //position en pixel de lindice de la cellule
-        bsGrid[cellX][cellY].position[1] = (int)gridFraction*cellY;
+        bsGrid[cellX][cellY].position[0] = cellX; //position en pixel de lindice de la cellule
+        bsGrid[cellX][cellY].position[1] = cellY;
     }
 
     private void initGrid() {
         for(int i = 0; i < 10; i++) {
             for(int j = 0; j < 10; j++) {
-                bsGrid[i][j] = new GridCell();
+                bsGrid[i][j] = new GridCell(i, j);
             }
         }
     }
@@ -88,7 +142,7 @@ public class MyShipsView extends View {
         int sideLength = gridSize/10;
 
         for (int i = 0; i < noHit.size(); i++) {
-            Rect rectangle = new Rect(noHit.get(i).position[0], noHit.get(i).position[1], noHit.get(i).position[0] + sideLength, noHit.get(i).position[1] + sideLength);
+            Rect rectangle = new Rect((int)noHit.get(i).position[0], (int)noHit.get(i).position[1], (int)noHit.get(i).position[0] + sideLength, (int)noHit.get(i).position[1] + sideLength);
             canvas.drawRect(rectangle, noHitPaint);
         }
     }
@@ -98,7 +152,11 @@ public class MyShipsView extends View {
         int sideLength = gridSize/10;
 
         for (int i = 0; i < Ships.size(); i++) {
-            Rect rectangle = new Rect(Ships.get(i).position[0], Ships.get(i).position[1], Ships.get(i).position[0] + sideLength, Ships.get(i).position[1] + sideLength);
+            Rect rectangle = new Rect(
+                    Math.round(Ships.get(i).position[0]),
+                    Math.round(Ships.get(i).position[1]),
+                    Math.round(Ships.get(i).position[0] + sideLength),
+                    Math.round(Ships.get(i).position[1] + sideLength));
             canvas.drawRect(rectangle, shipPaint);
         }
     }
@@ -110,8 +168,10 @@ public class MyShipsView extends View {
         int cellX = (int)(posX/gridFraction); //indice de la cellule
         int cellY = (int)(posY/gridFraction);
         testCellPlacement(cellX,  cellY, currentship, currentship.isHorizontal);
-        bsGrid[cellX][cellY].position[0] = (int)gridFraction*cellX; //position en pixel de lindice de la cellule
-        bsGrid[cellX][cellY].position[1] = (int)gridFraction*cellY;
+        //bsGrid[cellX][cellY].position[0] = (int)gridFraction*cellX; //position en pixel de lindice de la cellule
+        //bsGrid[cellX][cellY].position[1] = (int)gridFraction*cellY;
+        //bsGrid[cellX][cellY].coordX = cellX;
+        //bsGrid[cellX][cellY].coordY = cellY;
     }
 
     private void testCellPlacement(int CellX, int CellY , Navire currentship, boolean isHorizontal) {
@@ -129,7 +189,7 @@ public class MyShipsView extends View {
             //L'orientation du bateau est horizontale
             if (CellX+shipSize <= 10) {
                 for (int i = 0; i< shipSize; i++ ) {
-                    currentCell = bsGrid[CellX + i][CellY];
+                    currentCell =bsGrid[CellX + i][CellY];
                     if (currentCell.hasShip) {
                         isOk = false;
                         Log.i("Tag", "Hit autre bateau sur cell X : "+currentCell.position[0]+" Y : "+currentCell.position[1]);
@@ -142,13 +202,16 @@ public class MyShipsView extends View {
                 Log.i("Tag", "Depassement grid, Cell clicked = "+ CellX +" Ship size = " + shipSize);
             }
             if(isOk) {
-                ship.setVisibility(getRootView().GONE);
+                ship.setVisibility(View.INVISIBLE);
                 for (int i =0; i< shipSize; i++ ) {
                     currentCell = bsGrid[CellX+i][CellY];
-                    currentCell.position[0] = (int)gridFraction*(CellX+i); //position en pixel de lindice de la cellule
-                    currentCell.position[1] = (int)gridFraction*(CellY);
-                    Ships.add(currentCell);
+                    currentCell.position[0] = gridFraction*(CellX+i);  //position en pixel de lindice de la cellule
+                    currentCell.position[1] = gridFraction*(CellY);    //position en pixel de lindice de la cellule
+                    currentCell.coordonnees[0] = CellX+i;
+                    currentCell.coordonnees[1] = CellY;
                     currentCell.hasShip = true;
+                    currentCell.navireRef = currentship;
+                    Ships.add(currentCell);
                 }
             }
         }
@@ -169,27 +232,21 @@ public class MyShipsView extends View {
                 Log.i("Tag", "Depassement grid, Cell clicked = "+ CellY +" Ship size = " + shipSize);
             }
 
-
-
             if(isOk) {
-                ship.setVisibility(getRootView().GONE);
+                ship.setVisibility(View.INVISIBLE);
                 for (int i =0; i< shipSize; i++ ) {
                     currentCell = bsGrid[CellX][CellY+i];
-                    currentCell.position[0] = (int)gridFraction*(CellX); //position en pixel de lindice de la cellule
-                    currentCell.position[1] = (int)gridFraction*(CellY+i);
-                    Ships.add(currentCell);
+                    currentCell.position[0] = gridFraction*(CellX);  //position en pixel de lindice de la cellule
+                    currentCell.position[1] = gridFraction*(CellY+i);    //position en pixel de lindice de la cellule
+                    currentCell.coordonnees[0] = CellX;
+                    currentCell.coordonnees[1] = CellY+i;
                     currentCell.hasShip = true;
+                    currentCell.navireRef = currentship;
+                    Ships.add(currentCell);
                 }
             }
         }
         invalidate(); //pour caller onDraw
-        if (isOk) {
-            Log.i("Tag", "true");
-        }
-        else {
-            Log.i("Tag", "false");
-        }
-
     }
 
 }
