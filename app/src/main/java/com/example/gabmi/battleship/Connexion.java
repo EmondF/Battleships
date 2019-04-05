@@ -19,6 +19,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -26,6 +28,7 @@ import java.util.UUID;
 public class Connexion extends AppCompatActivity {
 
     public static UUID uuid;
+    public static String WHO_AM_I;
 
     private Button getPairedBtn;
     private Button connectPairedBtn;
@@ -44,6 +47,8 @@ public class Connexion extends AppCompatActivity {
     public static BluetoothSocket btSocket = null;
     public static BluetoothServerSocket btServerSocket = null;
     public static BluetoothAdapter myBtAdapter = null;
+    public static OutputStream btOutputStream;
+    public static InputStream btInputStream;
 
     public IntentFilter filter_found;
     public IntentFilter filter_discoveryFinished;
@@ -132,13 +137,13 @@ public class Connexion extends AppCompatActivity {
                 Log.e("Tag", "Socket's listen() method failed", e);
             }
 
-            while (true) {
+            boolean connected = false;
+            while (!connected) {
                 try {
                     Log.i("Tag", "Listening");
                     btSocket = btServerSocket.accept(); //Blocking method
                 } catch (IOException e) {
                     Log.e("Tag", "Socket's accept() method failed", e);
-                    break;
                 }
                 if (btSocket!= null) {
                     Log.i("Tag", " Connexion Accepted");
@@ -146,12 +151,24 @@ public class Connexion extends AppCompatActivity {
                         btServerSocket.close();
                     } catch (IOException e) {
                         Log.e("Tag", "Socket's close() method failed", e);
-                        break;
                     }
+                    try {
+                        btOutputStream = btSocket.getOutputStream();
+                    } catch (IOException e) {
+                        Log.e("Tag", "socket's getOutputStream() method failed", e);
+                    }
+                    try {
+                        btInputStream = btSocket.getInputStream();
+                    } catch (IOException e) {
+                        Log.e("Tag", "socket's getInputStream() method failed", e);
+                    }
+
+                    connected = true;
                     //Start activity "Ship placement" as player 2
                     Log.i("Tag", " Other activity started 2");
-                    ChangeView(ShipPlacement.class);
-                    break;
+                    Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
+                    intent.putExtra(WHO_AM_I, "Player2");
+                    startActivity(intent);
                 }
             }
             Log.i("Tag", "Thread ended");
@@ -186,9 +203,23 @@ public class Connexion extends AppCompatActivity {
                 if (btServerSocket != null) {
                     try {btServerSocket.close();} catch (IOException e) { e.printStackTrace();}
                 }
-                //Starts activity "Ship placement" as player 1
+
+                try {
+                    btOutputStream = btSocket.getOutputStream();
+                } catch (IOException e) {
+                    Log.e("Tag", "socket's getOutputStream() method failed", e);
+                }
+                try {
+                    btInputStream = btSocket.getInputStream();
+                } catch (IOException e) {
+                    Log.e("Tag", "socket's getInputStream() method failed", e);
+                }
+
                 Log.i("Tag", " Other activity started 1");
-                ChangeView(ShipPlacement.class);
+                //Starts activity "Ship placement" as player 1
+                Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
+                intent.putExtra(WHO_AM_I, "Player1");
+                startActivity(intent);
             }
             else {
                 btSocket = null;
@@ -332,8 +363,7 @@ public class Connexion extends AppCompatActivity {
     }
 
     private void ChangeView(Class activity) {
-        Intent intent = new Intent(getApplicationContext(), activity);
-        startActivity(intent);
+
     }
 
     @Override

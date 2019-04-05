@@ -4,11 +4,11 @@ import android.view.View;
 
 public class Navire {
 
-    protected String nom;
-    protected int taille;
-    protected int id;
-    protected View view;
-    protected boolean isHorizontal;
+    private String nom;
+    private int taille;
+    private int id;
+    private View view;
+    private boolean isHorizontal;
 
 
     protected Navire(String _nom, int _taille, int _id, View _view){
@@ -19,13 +19,23 @@ public class Navire {
         isHorizontal = true;
     }
 
-    public void setId(int _id)
-    {
+    public String getNom() {
+        return nom;
+    }
+
+    public int getTaille() {
+        return taille;
+    }
+
+    public void setId(int _id) {
         id = _id;
     }
 
-    public void setView(View v)
-    {
+    public int getId() {
+        return id;
+    }
+
+    public void setView(View v) {
         view = v;
     }
 

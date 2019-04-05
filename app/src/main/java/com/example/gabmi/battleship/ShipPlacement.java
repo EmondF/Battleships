@@ -12,12 +12,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class ShipPlacement extends AppCompatActivity  implements View.OnTouchListener {
 
+    String[] shipsNames = {"Destroyer", "Submarine", "Cruiser", "Battleship", "Aircraft Carrier"};
+    boolean player1;
+
+    public static String[] oppShipCoords;
+    public static String[] myShipCoords;
 
     Destroyer myDestroyer;
     Submarine mySubmarine;
@@ -28,6 +35,7 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
     Navire SelectedShip;
     MyShipsView myShipsRef;
     int shipsPlaced;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +51,11 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
         myBattleship = new Battleship(R.id.Battleship, findViewById(R.id.Battleship));
         myAircraftCarrier = new AircraftCarrier(R.id.AircraftCarrier, findViewById(R.id.AircraftCarrier));
         shipsPlaced = 0;
+
+        //Intent intent = getIntent();
+       // player1 = intent.getStringExtra(Connexion.WHO_AM_I).equals("Player1");
+        oppShipCoords = new String[5];
+        myShipCoords = new String[5];
     }
 
     @Override
@@ -56,13 +69,16 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
         if (event.getAction() == MotionEvent.ACTION_DOWN){
             if (SelectedShip != null) {
                 //Place ship
-                if (myShipsRef.findCellPlacement(event.getX(), event.getY(), SelectedShip)) {
+                if (myShipsRef.testAndPlaceShip(event.getX(), event.getY(), SelectedShip)) {
                     DeselectSelectedShip();
                     shipsPlaced++;
                     if (shipsPlaced == 5) {
                         findViewById(R.id.StartBtn).setVisibility(View.VISIBLE);
                         findViewById(R.id.choixBateaux).setVisibility(View.GONE);
                     }
+                }
+                else {
+                    Toast.makeText(getApplicationContext(), "Le navire n'entre pas à l'endroit cliqué", Toast.LENGTH_SHORT).show();
                 }
             }
             else {
@@ -108,6 +124,7 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
         startActivity(intent);
     }
 
+    //Sélectionner le bateau cliqué (Fct appelée par le XML)
     public void SelectShip(View view) {
         DeselectSelectedShip();
 
@@ -138,6 +155,7 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
         findViewById(R.id.rotateBtn).setVisibility(View.VISIBLE);
     }
 
+    //Déselectionner le bateau actuellement sélectionné
     public void DeselectSelectedShip() {
         if (SelectedShip != null) {
             ImageButton shipImBtn = (ImageButton)SelectedShip.getView();
@@ -152,6 +170,7 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
         }
     }
 
+    //Changer l'orientation du bateau sélectionné
     public void ChangeShipOrientation(View view) {
         ImageButton shipImBtn = (ImageButton)SelectedShip.getView();
         ViewGroup.LayoutParams oldLayoutParams = shipImBtn.getLayoutParams();
@@ -178,13 +197,92 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
         shipImBtn.setLayoutParams(newLayoutParams);
     }
 
+    //Échange les informations de grid avec l'adversaire et start la partie
     public void StartGame(View v) {
+
+        /*Remplir les Strings de coordonnées des 5 bateaux placés,
+         où chaque coordonnée = 2 caractères (Ex : Ligne 3, colonne 5 = "35")*/
         ArrayList<GridCell> shipList = myShipsRef.GetShipList();
-        //À Faire
-        //Envoyer le data des ships a ladversaire
-        //Recevoir le data des ships de ladversaire
-        //Lancer lautre activité en chargeant les 2 datas dans les 2 grids
-        //Commencer la partie
+        StringBuilder destroyerCoords = new StringBuilder();
+        StringBuilder submarineCoords = new StringBuilder();
+        StringBuilder cruiserCoords = new StringBuilder();
+        StringBuilder battleshipCoords = new StringBuilder();
+        StringBuilder aircraftCarrierCoords = new StringBuilder();
+
+        for (GridCell cell : shipList) {
+            switch (cell.navireRef.getNom()) {
+                case "Destroyer":
+                    destroyerCoords.append(cell.coordonnees[0]).append(cell.coordonnees[1]);
+                    break;
+                case "Submarine":
+                    submarineCoords.append(cell.coordonnees[0]).append(cell.coordonnees[1]);
+                    break;
+                case "Cruiser":
+                    cruiserCoords.append(cell.coordonnees[0]).append(cell.coordonnees[1]);
+                    break;
+                case "Battleship":
+                    battleshipCoords.append(cell.coordonnees[0]).append(cell.coordonnees[1]);
+                    break;
+                case "Aircraft Carrier":
+                    aircraftCarrierCoords.append(cell.coordonnees[0]).append(cell.coordonnees[1]);
+                    break;
+            }
+        }
+        myShipCoords[0] = destroyerCoords.toString();
+        myShipCoords[1] = submarineCoords.toString();
+        myShipCoords[2] = cruiserCoords.toString();
+        myShipCoords[3] = battleshipCoords.toString();
+        myShipCoords[4] = aircraftCarrierCoords.toString();
+
+
+        if (player1) {
+            //Player 1 : Send -> Receive
+
+            //Envoyer les coordonnées des bateaux placés a l'adversaire
+            try {
+                for (int i = 0; i < 5; i++) {
+                    Connexion.btOutputStream.write(myShipCoords[i].getBytes());
+                }
+            } catch (IOException e) {
+                Log.e("Tag", "btOutputStream's write() method failed", e);
+            }
+
+            //Recevoir le data des ships de l'adversaire
+            try {
+                for (int i = 0; i < 5; i++) {
+                    byte[] buffer = new byte[1024];
+                    Connexion.btInputStream.read(buffer);
+                    oppShipCoords[i] = Arrays.toString(buffer);
+                }
+            } catch (IOException e) {
+                Log.e("Tag", "btInputStream's read() method failed", e);
+            }
+        } else {
+            //Player 2 : Receive -> Send
+
+            //Recevoir le data des ships de l'adversaire
+            try {
+                for (int i = 0; i < 5; i++) {
+                    byte[] buffer = new byte[1024];
+                    Connexion.btInputStream.read(buffer);
+                    oppShipCoords[i] = Arrays.toString(buffer);
+                }
+            } catch (IOException e) {
+                Log.e("Tag", "btInputStream's read() method failed", e);
+            }
+
+            //Envoyer les coordonnées des bateaux placés a l'adversaire
+            try {
+                for (int i = 0; i < 5; i++) {
+                    Connexion.btOutputStream.write(myShipCoords[i].getBytes());
+                }
+            } catch (IOException e) {
+                Log.e("Tag", "btOutputStream's write() method failed", e);
+            }
+        }
+
+        //Lancer lautre activité en chargeant les 2 datas dans les 2 grids dans son onCreate
+        //Commencer la partie avec 2 objets MyShipsView(règles, alternement, etc)
     }
 
     @Override

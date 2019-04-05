@@ -26,8 +26,7 @@
             android:id="@+id/myShipsView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/battleship_grid"
-            android:orientation="vertical">
+            android:background="@drawable/battleship_grid">
         </com.example.gabmi.battleship.MyShipsView>
 
         <ImageButton

@@ -10,6 +10,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -18,23 +19,36 @@ public class MyShipsView extends View {
     private GridCell[][] bsGrid;
     public static int gridSize;
     private ArrayList<GridCell> noHit;
-    private ArrayList<GridCell> HitCell;
+    private ArrayList<GridCell> hit;
     private ArrayList<GridCell> Ships;
-    private Paint noHitPaint, shipPaint;
+    private Paint noHitPaint, hitPaint, shipPaint;
 
     public MyShipsView(Context context, AttributeSet attrs) {
         super(context, attrs);
         Log.i("Tag", "MyShipsView - Constructeur");
+
         bsGrid = new GridCell[10][10];
         initGrid();
-        //bsGrid[5][5].hasShip = true;
+
         noHit = new ArrayList<>();
-        HitCell = new ArrayList<>();
-        noHitPaint = new Paint();
-        shipPaint = new Paint();
+        hit = new ArrayList<>();
         Ships = new ArrayList<>();
-        noHitPaint.setColor(Color.argb(100, 255, 255, 255));
-        shipPaint.setColor(Color.argb(200, 0, 0 , 0));
+        noHitPaint = new Paint();
+        hitPaint = new Paint();
+        shipPaint = new Paint();
+
+        noHitPaint.setColor(Color.argb(100, 255, 255, 255));    //Blanc
+        hitPaint.setColor(Color.argb(255, 255, 0, 0));          //Rouge
+        shipPaint.setColor(Color.argb(255, 0, 0 , 0));          //Noir
+    }
+
+    //Initier la grid avec des GridCells vides
+    private void initGrid() {
+        for(int i = 0; i < 10; i++) {
+            for(int j = 0; j < 10; j++) {
+                bsGrid[i][j] = new GridCell(i, j);
+            }
+        }
     }
 
     //Methode pour que la grille soit toujours de dimension carre
@@ -46,43 +60,95 @@ public class MyShipsView extends View {
         setMeasuredDimension(gridSize, gridSize);
     }
 
-
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        //drawNoHit(canvas);
-        drawShip(canvas);
+        drawCanvas(canvas);
+    }
+
+    //Redessine tous les ships actuels dans le tableau "Ships"
+    private void drawCanvas(Canvas canvas){
+
+        int sideLength = gridSize/10;
+
+        for (int i = 0; i < Ships.size(); i++) {
+            Rect rectangle = new Rect(
+                    Math.round(Ships.get(i).position[0]),
+                    Math.round(Ships.get(i).position[1]),
+                    Math.round(Ships.get(i).position[0] + sideLength),
+                    Math.round(Ships.get(i).position[1] + sideLength));
+
+            canvas.drawRect(rectangle, shipPaint);
+        }
+        for (int i = 0; i < noHit.size(); i++) {
+            Rect rectangle = new Rect(
+                    Math.round(noHit.get(i).position[0]),
+                    Math.round(noHit.get(i).position[1]),
+                    Math.round(noHit.get(i).position[0] + sideLength),
+                    Math.round(noHit.get(i).position[1] + sideLength));
+
+            canvas.drawRect(rectangle, noHitPaint);
+        }
+        for (int i = 0; i < hit.size(); i++) {
+            Rect rectangle = new Rect(
+                    Math.round(hit.get(i).position[0]),
+                    Math.round(hit.get(i).position[1]),
+                    Math.round(hit.get(i).position[0] + sideLength),
+                    Math.round(hit.get(i).position[1] + sideLength));
+
+            canvas.drawRect(rectangle, hitPaint);
+        }
     }
 
     public ArrayList<GridCell> GetShipList() {
         return Ships;
     }
 
-    //Retourne l'objet GridCell correspondant à la position en pixel XY donnée
+    //Retourne l'objet GridCell correspondant à la position en pixel (X,Y) en entrée
     public GridCell getCell(float posX, float posY) {
         float gridFraction = (float)gridSize/10;
         int cellX = (int)(posX/gridFraction); //indice de la cellule
         int cellY = (int)(posY/gridFraction);
         return bsGrid[cellX][cellY];
     }
+/*
+    //Savoir quelle cellule on a touch
+    public void findCell(float posX, float posY) {
+        float gridFraction = (float)gridSize/10;
+        int cellX = (int)(posX/gridFraction); //indice de la cellule
+        int cellY = (int)(posY/gridFraction);
+        testCell(bsGrid[cellX][cellY]);
+        bsGrid[cellX][cellY].position[0] = cellX; //position en pixel de lindice de la cellule
+        bsGrid[cellX][cellY].position[1] = cellY;
+    }
 
+    //tester si y a un bateau
+    private void testCell(GridCell currentCell) {
+        if(!currentCell.hasShip && !currentCell.hasBeenClicked) {
+            noHit.add(currentCell);
+            currentCell.hasBeenClicked = true;
+        }
+        if(currentCell.hasShip && !currentCell.hasBeenClicked) {
+            hit.add(currentCell);
+            currentCell.hasBeenClicked = true;
+        }
+        invalidate(); //pour caller onDraw
+    }
+*/
     //Remove tout le ship de la GridCell cliquée, donnée en entrée
     public void removeShip(GridCell cellClicked) {
         float gridFraction = (float)gridSize/10;
         int coordX = cellClicked.coordonnees[0];
         int coordY = cellClicked.coordonnees[1];
-
         Navire navireClicked = cellClicked.navireRef;
-        boolean horizontal = navireClicked.isHorizontal;
-        String nom = navireClicked.nom;
+        String nom = navireClicked.getNom();
 
         navireClicked.getView().setVisibility(View.VISIBLE);
-
         Log.i("Tag", "Before remove : Ships : "+Ships.size());
-        if (horizontal) {
+        if (navireClicked.getOrientationHorizontal()) {
             for (int i=0; i<10; i++) {
                 if (bsGrid[i][coordY].hasShip) {
-                    if (bsGrid[i][coordY].navireRef.nom.equals(nom)) {
+                    if (bsGrid[i][coordY].navireRef.getNom().equals(nom)) {
                         bsGrid[i][coordY].navireRef = null;
                         bsGrid[i][coordY].hasShip = false;
                         Ships.remove(GetCellIndexInShipsArray(i, coordY));
@@ -93,7 +159,7 @@ public class MyShipsView extends View {
         else {
             for (int i=0; i<10; i++) {
                 if (bsGrid[coordX][i].hasShip) {
-                    if (bsGrid[coordX][i].navireRef.nom.equals(nom)) {
+                    if (bsGrid[coordX][i].navireRef.getNom().equals(nom)) {
                         bsGrid[coordX][i].navireRef = null;
                         bsGrid[coordX][i].hasShip = false;
                         Ships.remove(GetCellIndexInShipsArray(coordX, i));
@@ -115,87 +181,23 @@ public class MyShipsView extends View {
         return -1;
     }
 
-    //Savoir quelle cellule on a touch
-    public void findCell(float posX, float posY) {
+    //Place un bateau sur la grid en testant s'il y entre
+    public boolean testAndPlaceShip(float posX, float posY , Navire currentship) {
+
         float gridFraction = (float)gridSize/10;
         int cellX = (int)(posX/gridFraction); //indice de la cellule
         int cellY = (int)(posY/gridFraction);
-        testCell(bsGrid[cellX][cellY]);
-        bsGrid[cellX][cellY].position[0] = cellX; //position en pixel de lindice de la cellule
-        bsGrid[cellX][cellY].position[1] = cellY;
-    }
-
-    //Initier la grid avec des GridCells vides
-    private void initGrid() {
-        for(int i = 0; i < 10; i++) {
-            for(int j = 0; j < 10; j++) {
-                bsGrid[i][j] = new GridCell(i, j);
-            }
-        }
-    }
-
-    //tester si y a un bateau
-    private void testCell(GridCell currentCell) {
-        if(!currentCell.hasShip && !currentCell.hasBeenClicked) {
-            noHit.add(currentCell);
-            currentCell.hasBeenClicked = true;
-        }
-        if(currentCell.hasShip && !currentCell.hasBeenClicked) {
-            HitCell.add(currentCell);
-            currentCell.hasBeenClicked = true;
-        }
-        invalidate(); //pour caller onDraw
-    }
-
-    private void drawNoHit(Canvas canvas){
-
-        int sideLength = gridSize/10;
-
-        for (int i = 0; i < noHit.size(); i++) {
-            Rect rectangle = new Rect((int)noHit.get(i).position[0], (int)noHit.get(i).position[1], (int)noHit.get(i).position[0] + sideLength, (int)noHit.get(i).position[1] + sideLength);
-            canvas.drawRect(rectangle, noHitPaint);
-        }
-    }
-
-    //Redessine tous les ships actuels dans le tableau "Ships"
-    private void drawShip(Canvas canvas){
-
-        int sideLength = gridSize/10;
-
-        for (int i = 0; i < Ships.size(); i++) {
-            Rect rectangle = new Rect(
-                    Math.round(Ships.get(i).position[0]),
-                    Math.round(Ships.get(i).position[1]),
-                    Math.round(Ships.get(i).position[0] + sideLength),
-                    Math.round(Ships.get(i).position[1] + sideLength));
-            canvas.drawRect(rectangle, shipPaint);
-        }
-    }
-
-    //
-    public boolean findCellPlacement(float posX, float posY, Navire currentship) {
-
-        Log.i("Ship", currentship.nom);
-        float gridFraction = (float)gridSize/10;
-        int cellX = (int)(posX/gridFraction); //indice de la cellule
-        int cellY = (int)(posY/gridFraction);
-         return testCellPlacement(cellX,  cellY, currentship, currentship.isHorizontal);
-    }
-
-    private boolean testCellPlacement(int CellX, int CellY , Navire currentship, boolean isHorizontal) {
-
         GridCell currentCell;
+        int shipSize = currentship.getTaille();
         boolean isOk = true;
-        float gridFraction = (float)gridSize/10;
-        int shipSize = currentship.taille;
 
-        ImageButton ship = currentship.view.findViewById(currentship.id);
+        ImageButton ship = currentship.getView().findViewById(currentship.getId());
 
-        if (isHorizontal) {
+        if (currentship.getOrientationHorizontal()) {
             //L'orientation du bateau est horizontale
-            if (CellX+shipSize <= 10) {
+            if (cellX+shipSize <= 10) {
                 for (int i = 0; i< shipSize; i++ ) {
-                    currentCell =bsGrid[CellX + i][CellY];
+                    currentCell = bsGrid[cellX + i][cellY];
                     if (currentCell.hasShip) {
                         isOk = false;
                         Log.i("Tag", "Hit autre bateau sur cell X : "+currentCell.position[0]+" Y : "+currentCell.position[1]);
@@ -205,16 +207,16 @@ public class MyShipsView extends View {
             }
             else {
                 isOk = false;
-                Log.i("Tag", "Depassement grid, Cell clicked = "+ CellX +" Ship size = " + shipSize);
+                Log.i("Tag", "Depassement grid, Cell clicked = "+ cellX +" Ship size = " + shipSize);
             }
             if(isOk) {
                 ship.setVisibility(View.INVISIBLE);
                 for (int i =0; i< shipSize; i++ ) {
-                    currentCell = bsGrid[CellX+i][CellY];
-                    currentCell.position[0] = gridFraction*(CellX+i);  //position en pixel de lindice de la cellule
-                    currentCell.position[1] = gridFraction*(CellY);    //position en pixel de lindice de la cellule
-                    currentCell.coordonnees[0] = CellX+i;
-                    currentCell.coordonnees[1] = CellY;
+                    currentCell = bsGrid[cellX+i][cellY];
+                    currentCell.position[0] = gridFraction*(cellX+i);  //position en pixel de lindice de la cellule
+                    currentCell.position[1] = gridFraction*(cellY);    //position en pixel de lindice de la cellule
+                    currentCell.coordonnees[0] = cellX+i;
+                    currentCell.coordonnees[1] = cellY;
                     currentCell.hasShip = true;
                     currentCell.navireRef = currentship;
                     Ships.add(currentCell);
@@ -223,9 +225,9 @@ public class MyShipsView extends View {
         }
         else {
             //L'orientation du bateau est verticale
-            if (CellY+shipSize <= 10)  {
+            if (cellY+shipSize <= 10)  {
                 for (int i = 0; i< shipSize; i++ ) {
-                    currentCell = bsGrid[CellX][CellY+i];
+                    currentCell = bsGrid[cellX][cellY+i];
                     if(currentCell.hasShip) {
                         isOk = false;
                         Log.i("Tag", "Hit autre bateau sur cell X : "+currentCell.position[0]+" Y : "+currentCell.position[1]);
@@ -235,17 +237,17 @@ public class MyShipsView extends View {
             }
             else {
                 isOk = false;
-                Log.i("Tag", "Depassement grid, Cell clicked = "+ CellY +" Ship size = " + shipSize);
+                Log.i("Tag", "Depassement grid, Cell clicked = "+ cellY +" Ship size = " + shipSize);
             }
 
             if(isOk) {
                 ship.setVisibility(View.INVISIBLE);
                 for (int i =0; i< shipSize; i++ ) {
-                    currentCell = bsGrid[CellX][CellY+i];
-                    currentCell.position[0] = gridFraction*(CellX);  //position en pixel de lindice de la cellule
-                    currentCell.position[1] = gridFraction*(CellY+i);    //position en pixel de lindice de la cellule
-                    currentCell.coordonnees[0] = CellX;
-                    currentCell.coordonnees[1] = CellY+i;
+                    currentCell = bsGrid[cellX][cellY+i];
+                    currentCell.position[0] = gridFraction*(cellX);  //position en pixel de lindice de la cellule
+                    currentCell.position[1] = gridFraction*(cellY+i);    //position en pixel de lindice de la cellule
+                    currentCell.coordonnees[0] = cellX;
+                    currentCell.coordonnees[1] = cellY+i;
                     currentCell.hasShip = true;
                     currentCell.navireRef = currentship;
                     Ships.add(currentCell);
