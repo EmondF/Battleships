@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -28,7 +29,7 @@ import java.util.UUID;
 public class Connexion extends AppCompatActivity {
 
     public static UUID uuid;
-    public static String WHO_AM_I;
+    public static boolean player1;
 
     private Button getPairedBtn;
     private Button connectPairedBtn;
@@ -52,6 +53,7 @@ public class Connexion extends AppCompatActivity {
 
     public IntentFilter filter_found;
     public IntentFilter filter_discoveryFinished;
+    public IntentFilter filter_disconnected;
 
     private Thread listenThread;
 
@@ -61,8 +63,11 @@ public class Connexion extends AppCompatActivity {
         setContentView(R.layout.activity_connexion);
         Log.i("Tag", "Connexion - onCreate()");
 
-        pairedAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
-        otherAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
+        pairedAdapter = new ArrayAdapter<String>(this, R.layout.spinner_item, R.id.tv_spinner);
+        pairedAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
+        otherAdapter = new ArrayAdapter<String>(this, R.layout.spinner_item, R.id.tv_spinner);
+        otherAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
+
         pairedDevices = new HashSet<BluetoothDevice>();
         otherDevices = new HashSet<BluetoothDevice>();
 
@@ -81,6 +86,7 @@ public class Connexion extends AppCompatActivity {
 
         filter_found = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         filter_discoveryFinished = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        filter_disconnected = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
 
         //Widgets
         getPairedBtn = (Button)findViewById(R.id.button_get_paired);
@@ -91,8 +97,14 @@ public class Connexion extends AppCompatActivity {
 
         pairedSpinner = (Spinner)findViewById(R.id.spinner_paired);
         pairedSpinner.setAdapter(pairedAdapter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            pairedSpinner.setDropDownVerticalOffset(30);
+        }
 
         otherSpinner = (Spinner)findViewById(R.id.spinner_other);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            otherSpinner.setDropDownVerticalOffset(30);
+        }
         otherSpinner.setAdapter(otherAdapter);
 
         connectPairedBtn = (Button)findViewById(R.id.button_connectPaired);
@@ -101,17 +113,51 @@ public class Connexion extends AppCompatActivity {
         connectOtherBtn = (Button)findViewById(R.id.button_connectOther);
         connectOtherBtn.setOnClickListener(connectBtnListener);
 
-        informationsTextView = (TextView)findViewById(R.id.textView_informations);
+        informationsTextView = (TextView)findViewById(R.id.tv_lookingNearbyDevices);
 
         makeDiscoverableBtn = (Button) findViewById(R.id.button_make_discoverable);
         makeDiscoverableBtn.setOnClickListener(makeDiscoverableBtnListener);
     }
 
     @Override
+    public void onRestart() {
+        super.onRestart();
+
+        try {
+            btInputStream.close();
+        } catch (IOException e) {
+            Log.e("Tag", "InputStream's close() method failed");
+        } catch (NullPointerException e) {
+            Log.e("Tag", "tried to access InputStream while it was null");
+        }
+
+        try {
+            btOutputStream.close();
+        } catch (IOException e) {
+            Log.e("Tag", "OutputStream's close() method failed");
+        } catch (NullPointerException e) {
+            Log.e("Tag", "tried to access OutputStream while it was null");
+        }
+        try {
+            btSocket.close();
+        } catch (IOException e) {
+            Log.e("Tag", "Socket's close() method failed");
+        } catch (NullPointerException e) {
+            Log.e("Tag", "tried to access btSocket while it was null");
+        }
+
+        try {
+            unregisterReceiver(mReceiverActionAclDisconnected);
+        } catch(IllegalArgumentException e) {
+            Log.e("Tag", "Unregistering receivermReceiverActionAclDisconnected failed");
+        }
+    }
+
+    @Override
     public void onStart() {
         super.onStart();
         Log.i("Tag", "Connexion - onStart()");
-        btSocket = null;
+
         registerReceiver(mReceiverActionFound, filter_found);
         registerReceiver(mReceiverActionDiscoveryFinished, filter_discoveryFinished);
 
@@ -134,7 +180,7 @@ public class Connexion extends AppCompatActivity {
             try {
                 btServerSocket = myBtAdapter.listenUsingInsecureRfcommWithServiceRecord("BattleShip", uuid);
             } catch (IOException e) {
-                Log.e("Tag", "Socket's listen() method failed", e);
+                Log.e("Tag", "Socket's listen() method failed");
             }
 
             boolean connected = false;
@@ -143,31 +189,33 @@ public class Connexion extends AppCompatActivity {
                     Log.i("Tag", "Listening");
                     btSocket = btServerSocket.accept(); //Blocking method
                 } catch (IOException e) {
-                    Log.e("Tag", "Socket's accept() method failed", e);
+                    Log.e("Tag", "Socket's accept() method failed");
+                    break;
                 }
                 if (btSocket!= null) {
                     Log.i("Tag", " Connexion Accepted");
                     try {
                         btServerSocket.close();
                     } catch (IOException e) {
-                        Log.e("Tag", "Socket's close() method failed", e);
+                        Log.e("Tag", "Socket's close() method failed");
                     }
                     try {
                         btOutputStream = btSocket.getOutputStream();
                     } catch (IOException e) {
-                        Log.e("Tag", "socket's getOutputStream() method failed", e);
+                        Log.e("Tag", "socket's getOutputStream() method failed");
                     }
                     try {
                         btInputStream = btSocket.getInputStream();
                     } catch (IOException e) {
-                        Log.e("Tag", "socket's getInputStream() method failed", e);
+                        Log.e("Tag", "socket's getInputStream() method failed");
                     }
 
                     connected = true;
                     //Start activity "Ship placement" as player 2
                     Log.i("Tag", " Other activity started 2");
+                    registerReceiver(mReceiverActionAclDisconnected, filter_disconnected);
+                    player1 = false;
                     Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
-                    intent.putExtra(WHO_AM_I, "Player2");
                     startActivity(intent);
                 }
             }
@@ -207,18 +255,19 @@ public class Connexion extends AppCompatActivity {
                 try {
                     btOutputStream = btSocket.getOutputStream();
                 } catch (IOException e) {
-                    Log.e("Tag", "socket's getOutputStream() method failed", e);
+                    Log.e("Tag", "socket's getOutputStream() method failed");
                 }
                 try {
                     btInputStream = btSocket.getInputStream();
                 } catch (IOException e) {
-                    Log.e("Tag", "socket's getInputStream() method failed", e);
+                    Log.e("Tag", "socket's getInputStream() method failed");
                 }
 
                 Log.i("Tag", " Other activity started 1");
                 //Starts activity "Ship placement" as player 1
+                registerReceiver(mReceiverActionAclDisconnected, filter_disconnected);
+                player1 = true;
                 Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
-                intent.putExtra(WHO_AM_I, "Player1");
                 startActivity(intent);
             }
             else {
@@ -260,10 +309,27 @@ public class Connexion extends AppCompatActivity {
             if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                 Log.i("Tag", "DiscoveryFinished");
                 //Discovery is finished
-                informationsTextView.setText(getString(R.string.device_discovery_finished));
+                informationsTextView.setVisibility(View.INVISIBLE);
                 myBtAdapter.cancelDiscovery();
-                Toast.makeText(getApplicationContext(), getString(R.string.Discovery_finished), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), getString(R.string.device_discovery_finished), Toast.LENGTH_LONG).show();
                 unregisterReceiver(mReceiverActionDiscoveryFinished);
+            }
+        }
+    };
+
+    // Create a BroadcastReceiver for Bluetooth.ACTION_ACL_DISCONNECTED
+    private final BroadcastReceiver mReceiverActionAclDisconnected = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+                //Device disconnected
+                Log.i("Tag", "Disconnected");
+                //Retour a la page de connexion
+                if (getApplicationContext() != Connexion.this) {
+                    Intent mintent = new Intent(getApplicationContext(), Connexion.class);
+                    startActivity(mintent);
+                }
+                Toast.makeText(Connexion.this, R.string.connexion_with_host_ended, Toast.LENGTH_LONG).show();
             }
         }
     };
@@ -312,12 +378,12 @@ public class Connexion extends AppCompatActivity {
                 try {
                     btSocket = device.createInsecureRfcommSocketToServiceRecord(uuid);
                 } catch (IOException e) {
-                    Log.e("Tag", "Socket's create() method failed", e);
+                    Log.e("Tag", "Socket's create() method failed");
                 }
                 try {
                     btSocket.connect();
                 } catch (IOException e) {
-                    Log.e("Tag", "Socket's connect() method failed", e);
+                    Log.e("Tag", "Socket's connect() method failed");
                 }
                 return btSocket.isConnected();
             }
@@ -362,28 +428,31 @@ public class Connexion extends AppCompatActivity {
         return false;
     }
 
-    private void ChangeView(Class activity) {
-
-    }
-
     @Override
     protected void onStop() {
         super.onStop();
         Log.i("Tag", "Connexion - onStop()");
-        try {
-            unregisterReceiver(mReceiverActionFound);
-        } catch(IllegalArgumentException e) {
-            Log.e("Tag", "Unregistering receiver mReceiverActionFound failed", e);
-        }
-        try {
-            unregisterReceiver(mReceiverActionDiscoveryFinished);
-        } catch(IllegalArgumentException e) {
-            Log.e("Tag", "Unregistering receiver mReceiverActionDiscoveryFinished failed", e);
-        }
     }
     @Override
     protected void onDestroy() {
         super.onDestroy();
         Log.i("Tag", "Connexion - onDestroy()");
+        try {
+            unregisterReceiver(mReceiverActionFound);
+        } catch(IllegalArgumentException e) {
+            Log.e("Tag", "Unregistering receiver mReceiverActionFound failed");
+        }
+
+        try {
+            unregisterReceiver(mReceiverActionDiscoveryFinished);
+        } catch(IllegalArgumentException e) {
+            Log.e("Tag", "Unregistering receiver mReceiverActionDiscoveryFinished failed");
+        }
+
+        try {
+            unregisterReceiver(mReceiverActionAclDisconnected);
+        } catch(IllegalArgumentException e) {
+            Log.e("Tag", "Unregistering receivermReceiverActionAclDisconnected failed");
+        }
     }
 }

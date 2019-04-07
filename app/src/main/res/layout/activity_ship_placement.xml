@@ -22,26 +22,58 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <com.example.gabmi.battleship.MyShipsView
+        <com.example.gabmi.battleship.ShipGridView
             android:id="@+id/myShipsView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@drawable/battleship_grid">
-        </com.example.gabmi.battleship.MyShipsView>
-
-        <ImageButton
-            android:id="@+id/rotateBtn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:onClick="ChangeShipOrientation"
-            android:src="@drawable/baseline_cached_black_18dp"
-            android:visibility="invisible"/>
+        </com.example.gabmi.battleship.ShipGridView>
 
         <LinearLayout
-            android:id="@+id/choixBateaux"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="70"
+            android:layout_weight="15"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <Button
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="50"
+                    android:layout_gravity="center"
+                    android:text="@string/aleatoire"
+                    app:autoSizeTextType="uniform"
+                    app:autoSizeMinTextSize="12sp"
+                    app:autoSizeMaxTextSize="100sp"
+                    app:autoSizeStepGranularity="2sp"
+                    android:onClick="PlaceShipsRandom" />
+
+                <Button
+                    android:id="@+id/rotateBtn"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="50"
+                    android:layout_gravity="center"
+                    android:text="@string/rotation"
+                    app:autoSizeTextType="uniform"
+                    app:autoSizeMinTextSize="12sp"
+                    app:autoSizeMaxTextSize="100sp"
+                    app:autoSizeStepGranularity="2sp"
+                    android:onClick="ChangeShipOrientation"
+                    android:visibility="invisible" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/shipsLayout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="85"
             android:orientation="vertical"
             android:background="@color/Blue">
 
@@ -130,17 +162,55 @@
                     </LinearLayout>
                 </LinearLayout>
         </LinearLayout>
-        
-        <Button
-            android:id="@+id/StartBtn"
+
+        <RelativeLayout
+            android:id="@+id/startGameLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="25sp"
-            android:text = "@string/commencer_la_partie"
-            android:onClick="StartGame"
-            android:layout_gravity="center"
-            android:visibility="gone"
-            />
+            android:layout_height="0dp"
+            android:layout_weight="85"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/waiting_opponent_tv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:autoSizeTextType="uniform"
+                app:autoSizeMinTextSize="12sp"
+                app:autoSizeMaxTextSize="100sp"
+                app:autoSizeStepGranularity="2sp"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:text="@string/waiting_for_opponent"
+                android:textColor="@color/White"
+                android:textStyle="bold"
+                android:layout_above="@+id/StartBtn"
+                android:visibility="invisible"
+                />
+
+            <Button
+                android:id="@+id/ResetGridBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:autoSizeTextType="uniform"
+                app:autoSizeMinTextSize="12sp"
+                app:autoSizeMaxTextSize="100sp"
+                app:autoSizeStepGranularity="2sp"
+                android:text = "@string/reinitialiser_la_grille"
+                android:onClick="ClearGrid" />
+
+            <Button
+                android:id="@+id/StartBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:autoSizeTextType="uniform"
+                app:autoSizeMinTextSize="12sp"
+                app:autoSizeMaxTextSize="100sp"
+                app:autoSizeStepGranularity="2sp"
+                android:text="@string/commencer_la_partie"
+                android:onClick="StartGame"
+                android:layout_alignParentBottom="true" />
+        </RelativeLayout>
+
 
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

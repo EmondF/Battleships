@@ -9,6 +9,7 @@ public class Navire {
     private int id;
     private View view;
     private boolean isHorizontal;
+    private int HP;
 
 
     protected Navire(String _nom, int _taille, int _id, View _view){
@@ -17,6 +18,8 @@ public class Navire {
         id = _id;
         view = _view;
         isHorizontal = true;
+        HP = _taille;
+
     }
 
     public String getNom() {
@@ -49,5 +52,13 @@ public class Navire {
 
     public boolean getOrientationHorizontal() {
         return isHorizontal;
+    }
+
+    public void lose1HP() {
+        HP--;
+    }
+
+    public int getHP() {
+        return HP;
     }
 }

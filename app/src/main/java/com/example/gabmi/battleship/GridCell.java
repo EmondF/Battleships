@@ -8,10 +8,10 @@ public class GridCell {
     public int[] coordonnees;
     Navire navireRef;
 
-    public GridCell(int coordX, int coordY) {
+    public GridCell(int coordX, int coordY, float posX, float posY) {
         hasShip = false;
         hasBeenClicked = false;
-        position = new float[]{0, 0};
+        position = new float[]{posX, posY};
         coordonnees = new int[]{coordX, coordY};
         navireRef = null;
     }
