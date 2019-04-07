@@ -1,0 +1,19 @@
+-----A FAIRE-----
+---Important---
+-> Gestion des evenements (retours aux activités deja ouvertes(fin de partie, play again, etc), le bouton back, kill d'app par l'user etc)
+-> Demander confirmation de l'utilisateur lorsque quelqun tente de se connecter à lui
+	
+
+---Peaufinage---
+-> Creer un IA avec 3 niveaux de difficulté :  
+	-Easy : Full random
+	-Normal : Random+ajuste son comportement s'il hit de quoi
+	-Impossible : Triche en checkant dans le code les bateaux sont ou (xd)
+-> Creer une page d'accueil pour proposer de jouer hors-ligne(IA) ou contre un ami(bluetooth)
+-> Images au lieu des couleurs pour draw les bateaux
+-> Drag and Drop pour le placement des bateaux
+-> Afficher plus d'informations dans "Game.java" lorsque :
+	-Un bateau est touché
+	-Un bateau est touché coulé
+	-Afficher liste des bateaux coulés de l'opponent
+-> Améliorations de GUI possibles un peu partout
