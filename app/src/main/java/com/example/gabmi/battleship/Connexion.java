@@ -174,7 +174,6 @@ public class Connexion extends AppCompatActivity {
         }
 
         //Starts listen thread
-        mHandler = new Handler();
         connected = false;
 
         listenThread = new Thread(listenThreadAction);
@@ -183,8 +182,6 @@ public class Connexion extends AppCompatActivity {
         otherSpinner.setVisibility(View.INVISIBLE);
         connectOtherBtn.setVisibility(View.INVISIBLE);
         informationsTextView.setVisibility(View.INVISIBLE);
-
-
     }
 
     private Runnable listenThreadAction = new Runnable() {
@@ -248,45 +245,13 @@ public class Connexion extends AppCompatActivity {
                         Log.e("Tag", "socket's getInputStream() method failed");
                     }
 
-                    mHandler.post(new Runnable() {
-                        public void run(){
-                            //Be sure to pass your Activity class, not the Thread
-                            new AlertDialog.Builder(Connexion.this)
-                                    .setTitle("Warning !")
-                                    .setMessage(btSocket.getRemoteDevice().getName() + " tente de se connecter. Acceptez-vous ?")
-                                    .setIcon(R.drawable.warning_icon)
-                                    .setPositiveButton(R.string.Yes,
-                                            new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int id) {
-                                                    try {
-                                                        btOutputStream.write("y".getBytes());
-                                                        //Start activity "Ship placement" as player 2
-                                                        Log.i("Tag", " Other activity started 2");
-                                                        registerReceiver(mReceiverActionAclDisconnected, filter_disconnected);
-                                                        player1 = false;
-                                                        Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
-                                                        startActivity(intent);
-                                                        connected = true;
-                                                    }
-                                                    catch (IOException e) {
-                                                        Log.e("Tag", "Writing failed");
-                                                    }
-                                                }
-                                            })
-                                    .setNegativeButton(R.string.No,
-                                            new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int id) {
-                                                    try {
-                                                        btOutputStream.write("n".getBytes());
-                                                    }
-                                                    catch (IOException e) {
-                                                        Log.e("Tag", "Writing failed");
-                                                    }
-                                                }
-                                            })
-                                    .show();
-                        }
-                    });
+                    //Start activity "Ship placement" as player 2
+                    Log.i("Tag", " Other activity started 2");
+                    registerReceiver(mReceiverActionAclDisconnected, filter_disconnected);
+                    player1 = false;
+                    Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
+                    startActivity(intent);
+                    connected = true;
                 }
             }
             Log.i("Tag", "Thread ended");
@@ -332,52 +297,12 @@ public class Connexion extends AppCompatActivity {
                     Log.e("Tag", "socket's getInputStream() method failed");
                 }
 
-                byte [] buffer = new byte[1];
-                try {
-                    btInputStream.read(buffer);
-                } catch (IOException e) {
-                    Log.e("Tag", "Reading failed");
-                    finish();
-                }
-                String b = new String(buffer);
-
-                if (b.equals("y")) {
-                    //Starts activity "Ship placement" as player 1
-                    Log.i("Tag", " Other activity started 1");
-                    registerReceiver(mReceiverActionAclDisconnected, filter_disconnected);
-                    player1 = true;
-                    Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
-                    startActivity(intent);
-                }
-                else {
-                    btSocket = null;
-                    Toast.makeText(getApplicationContext(), getString(R.string.connexion_denied), Toast.LENGTH_LONG).show();
-                    try {
-                        btInputStream.close();
-                        btInputStream = null;
-                    } catch (IOException e) {
-                        Log.e("Tag", "InputStream's close() method failed");
-                    } catch (NullPointerException e) {
-                        Log.e("Tag", "tried to access InputStream while it was null");
-                    }
-
-                    try {
-                        btOutputStream.close();
-                        btOutputStream = null;
-                    } catch (IOException e) {
-                        Log.e("Tag", "OutputStream's close() method failed");
-                    } catch (NullPointerException e) {
-                        Log.e("Tag", "tried to access OutputStream while it was null");
-                    }
-                    try {
-                        btSocket.close();
-                        btSocket = null;
-                    } catch (IOException e) {
-                        Log.e("Tag", "Socket's close() method failed");
-                    } catch (NullPointerException e) {
-                        Log.e("Tag", "tried to access btSocket while it was null");
-                    }
-                }
+                //Starts activity "Ship placement" as player 1
+                Log.i("Tag", " Other activity started 1");
+                registerReceiver(mReceiverActionAclDisconnected, filter_disconnected);
+                player1 = true;
+                Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
+                startActivity(intent);
             }
             else {
                 btSocket = null;
