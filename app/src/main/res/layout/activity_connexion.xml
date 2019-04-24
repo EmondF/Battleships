@@ -92,6 +92,16 @@
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:layout_weight="2"
+            android:id="@+id/button_solo"
+            android:text="@string/solo"
+            android:textSize="20sp"
+            android:layout_gravity="center"
+            />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="2"
             android:id="@+id/button_connectPaired"
             android:text="@string/Connect"
             android:textSize="20sp"

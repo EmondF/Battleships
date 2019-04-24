@@ -179,10 +179,12 @@ public class Game extends AppCompatActivity implements View.OnTouchListener {
             oppGridRef.RevealGrid();
             ((TextView)findViewById(R.id.win_lose_tv)).setText(R.string.defeat);
         }
+
+
     }
 
     public void Rematch(View view) {
-        Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
+        Intent intent = new Intent(getApplicationContext(), Connexion.class);
         startActivity(intent);
     }
 

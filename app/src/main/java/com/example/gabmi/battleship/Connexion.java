@@ -31,7 +31,10 @@ public class Connexion extends AppCompatActivity {
     public static UUID uuid;
     public static boolean player1;
 
+    public static boolean solo;
+
     private Button getPairedBtn;
+    private Button soloButton;
     private Button connectPairedBtn;
     private Spinner pairedSpinner;
     private Button searchOtherBtn;
@@ -63,6 +66,7 @@ public class Connexion extends AppCompatActivity {
         setContentView(R.layout.activity_connexion);
         Log.i("Tag", "Connexion - onCreate()");
 
+        solo = false;
         pairedAdapter = new ArrayAdapter<String>(this, R.layout.spinner_item, R.id.tv_spinner);
         pairedAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
         otherAdapter = new ArrayAdapter<String>(this, R.layout.spinner_item, R.id.tv_spinner);
@@ -89,6 +93,9 @@ public class Connexion extends AppCompatActivity {
         filter_disconnected = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
 
         //Widgets
+        soloButton = (Button)findViewById(R.id.button_solo);
+        soloButton.setOnClickListener(SoloPlay);
+
         getPairedBtn = (Button)findViewById(R.id.button_get_paired);
         getPairedBtn.setOnClickListener(getPairedBtnListener);
 
@@ -227,6 +234,15 @@ public class Connexion extends AppCompatActivity {
         @Override
         public void onClick(View v) {
             GetPairedDevices();
+        }
+    };
+
+    private View.OnClickListener SoloPlay = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
+            startActivity(intent);
+            solo = true;
         }
     };
 
@@ -390,6 +406,8 @@ public class Connexion extends AppCompatActivity {
             return false;
         }
     }
+
+
 
     private void makeDiscoverable() {
         Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);

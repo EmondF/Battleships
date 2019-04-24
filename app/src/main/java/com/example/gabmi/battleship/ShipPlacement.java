@@ -177,6 +177,7 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
 
     //Place tous les bateaux aléatoirement sur la grille
     public void PlaceShipsRandom(View view) {
+
         Navire[] ships = new Navire[]{myAircraftCarrier, myBattleship, myCruiser, mySubmarine, myDestroyer};
         int cellX,cellY;
         boolean shipPlaced, orientation;
@@ -200,6 +201,7 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
         shipsPlaced = 5;
         findViewById(R.id.startGameLayout).setVisibility(View.VISIBLE);
         findViewById(R.id.shipsLayout).setVisibility(View.GONE);
+        DeselectSelectedShip();
     }
 
     //Retirer tous les  bateaux de la grille
