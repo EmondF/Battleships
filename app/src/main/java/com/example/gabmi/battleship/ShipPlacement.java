@@ -68,10 +68,15 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
     protected void onStart() {
         Log.i("Tag", "ShipPlacement - onStart()");
         super.onStart();
-        if (Connexion.btOutputStream==null || Connexion.btInputStream==null || Connexion.btSocket==null) {
-            Intent intent = new Intent(getApplicationContext(), Connexion.class);
-            startActivity(intent);
+
+        if(Connexion.solo == false)
+        {
+            if (Connexion.btOutputStream==null || Connexion.btInputStream==null || Connexion.btSocket==null) {
+                Intent intent = new Intent(getApplicationContext(), Connexion.class);
+                startActivity(intent);
+            }
         }
+
     }
 
     @Override
