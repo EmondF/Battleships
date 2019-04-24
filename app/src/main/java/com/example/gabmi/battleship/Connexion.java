@@ -1,14 +1,21 @@
 package com.example.gabmi.battleship;
 
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Handler;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -56,6 +64,9 @@ public class Connexion extends AppCompatActivity {
     public IntentFilter filter_disconnected;
 
     private Thread listenThread;
+    private Handler mHandler;
+
+    private boolean connected;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,40 +128,7 @@ public class Connexion extends AppCompatActivity {
 
         makeDiscoverableBtn = (Button) findViewById(R.id.button_make_discoverable);
         makeDiscoverableBtn.setOnClickListener(makeDiscoverableBtnListener);
-    }
 
-    @Override
-    public void onRestart() {
-        super.onRestart();
-
-        try {
-            btInputStream.close();
-        } catch (IOException e) {
-            Log.e("Tag", "InputStream's close() method failed");
-        } catch (NullPointerException e) {
-            Log.e("Tag", "tried to access InputStream while it was null");
-        }
-
-        try {
-            btOutputStream.close();
-        } catch (IOException e) {
-            Log.e("Tag", "OutputStream's close() method failed");
-        } catch (NullPointerException e) {
-            Log.e("Tag", "tried to access OutputStream while it was null");
-        }
-        try {
-            btSocket.close();
-        } catch (IOException e) {
-            Log.e("Tag", "Socket's close() method failed");
-        } catch (NullPointerException e) {
-            Log.e("Tag", "tried to access btSocket while it was null");
-        }
-
-        try {
-            unregisterReceiver(mReceiverActionAclDisconnected);
-        } catch(IllegalArgumentException e) {
-            Log.e("Tag", "Unregistering receivermReceiverActionAclDisconnected failed");
-        }
     }
 
     @Override
@@ -163,7 +141,42 @@ public class Connexion extends AppCompatActivity {
 
         GetPairedDevices(); //Updates known devices spinner
 
+        try {
+            btInputStream.close();
+            btInputStream = null;
+        } catch (IOException e) {
+            Log.e("Tag", "InputStream's close() method failed");
+        } catch (NullPointerException e) {
+            Log.e("Tag", "tried to access InputStream while it was null");
+        }
+
+        try {
+            btOutputStream.close();
+            btOutputStream = null;
+        } catch (IOException e) {
+            Log.e("Tag", "OutputStream's close() method failed");
+        } catch (NullPointerException e) {
+            Log.e("Tag", "tried to access OutputStream while it was null");
+        }
+        try {
+            btSocket.close();
+            btSocket = null;
+        } catch (IOException e) {
+            Log.e("Tag", "Socket's close() method failed");
+        } catch (NullPointerException e) {
+            Log.e("Tag", "tried to access btSocket while it was null");
+        }
+
+        try {
+            unregisterReceiver(mReceiverActionAclDisconnected);
+        } catch(IllegalArgumentException e) {
+            Log.e("Tag", "Unregistering receivermReceiverActionAclDisconnected failed");
+        }
+
         //Starts listen thread
+        mHandler = new Handler();
+        connected = false;
+
         listenThread = new Thread(listenThreadAction);
         listenThread.start();
 
@@ -171,19 +184,45 @@ public class Connexion extends AppCompatActivity {
         connectOtherBtn.setVisibility(View.INVISIBLE);
         informationsTextView.setVisibility(View.INVISIBLE);
 
+
     }
 
     private Runnable listenThreadAction = new Runnable() {
         @Override
         public void run()  {
-            btSocket = null;
+            try {
+                btInputStream.close();
+                btInputStream = null;
+            } catch (IOException e) {
+                Log.e("Tag", "InputStream's close() method failed");
+            } catch (NullPointerException e) {
+                Log.e("Tag", "tried to access InputStream while it was null");
+            }
+
+            try {
+                btOutputStream.close();
+                btOutputStream = null;
+            } catch (IOException e) {
+                Log.e("Tag", "OutputStream's close() method failed");
+            } catch (NullPointerException e) {
+                Log.e("Tag", "tried to access OutputStream while it was null");
+            }
+
+            try {
+                btSocket.close();
+                btSocket = null;
+            } catch (IOException e) {
+                Log.e("Tag", "Socket's close() method failed");
+            } catch (NullPointerException e) {
+                Log.e("Tag", "tried to access btSocket while it was null");
+            }
+
             try {
                 btServerSocket = myBtAdapter.listenUsingInsecureRfcommWithServiceRecord("BattleShip", uuid);
             } catch (IOException e) {
                 Log.e("Tag", "Socket's listen() method failed");
             }
 
-            boolean connected = false;
             while (!connected) {
                 try {
                     Log.i("Tag", "Listening");
@@ -193,7 +232,6 @@ public class Connexion extends AppCompatActivity {
                     break;
                 }
                 if (btSocket!= null) {
-                    Log.i("Tag", " Connexion Accepted");
                     try {
                         btServerSocket.close();
                     } catch (IOException e) {
@@ -210,13 +248,45 @@ public class Connexion extends AppCompatActivity {
                         Log.e("Tag", "socket's getInputStream() method failed");
                     }
 
-                    connected = true;
-                    //Start activity "Ship placement" as player 2
-                    Log.i("Tag", " Other activity started 2");
-                    registerReceiver(mReceiverActionAclDisconnected, filter_disconnected);
-                    player1 = false;
-                    Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
-                    startActivity(intent);
+                    mHandler.post(new Runnable() {
+                        public void run(){
+                            //Be sure to pass your Activity class, not the Thread
+                            new AlertDialog.Builder(Connexion.this)
+                                    .setTitle("Warning !")
+                                    .setMessage(btSocket.getRemoteDevice().getName() + " tente de se connecter. Acceptez-vous ?")
+                                    .setIcon(R.drawable.warning_icon)
+                                    .setPositiveButton(R.string.Yes,
+                                            new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int id) {
+                                                    try {
+                                                        btOutputStream.write("y".getBytes());
+                                                        //Start activity "Ship placement" as player 2
+                                                        Log.i("Tag", " Other activity started 2");
+                                                        registerReceiver(mReceiverActionAclDisconnected, filter_disconnected);
+                                                        player1 = false;
+                                                        Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
+                                                        startActivity(intent);
+                                                        connected = true;
+                                                    }
+                                                    catch (IOException e) {
+                                                        Log.e("Tag", "Writing failed");
+                                                    }
+                                                }
+                                            })
+                                    .setNegativeButton(R.string.No,
+                                            new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int id) {
+                                                    try {
+                                                        btOutputStream.write("n".getBytes());
+                                                    }
+                                                    catch (IOException e) {
+                                                        Log.e("Tag", "Writing failed");
+                                                    }
+                                                }
+                                            })
+                                    .show();
+                        }
+                    });
                 }
             }
             Log.i("Tag", "Thread ended");
@@ -251,7 +321,6 @@ public class Connexion extends AppCompatActivity {
                 if (btServerSocket != null) {
                     try {btServerSocket.close();} catch (IOException e) { e.printStackTrace();}
                 }
-
                 try {
                     btOutputStream = btSocket.getOutputStream();
                 } catch (IOException e) {
@@ -263,12 +332,52 @@ public class Connexion extends AppCompatActivity {
                     Log.e("Tag", "socket's getInputStream() method failed");
                 }
 
-                Log.i("Tag", " Other activity started 1");
-                //Starts activity "Ship placement" as player 1
-                registerReceiver(mReceiverActionAclDisconnected, filter_disconnected);
-                player1 = true;
-                Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
-                startActivity(intent);
+                byte [] buffer = new byte[1];
+                try {
+                    btInputStream.read(buffer);
+                } catch (IOException e) {
+                    Log.e("Tag", "Reading failed");
+                    finish();
+                }
+                String b = new String(buffer);
+
+                if (b.equals("y")) {
+                    //Starts activity "Ship placement" as player 1
+                    Log.i("Tag", " Other activity started 1");
+                    registerReceiver(mReceiverActionAclDisconnected, filter_disconnected);
+                    player1 = true;
+                    Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
+                    startActivity(intent);
+                }
+                else {
+                    btSocket = null;
+                    Toast.makeText(getApplicationContext(), getString(R.string.connexion_denied), Toast.LENGTH_LONG).show();
+                    try {
+                        btInputStream.close();
+                        btInputStream = null;
+                    } catch (IOException e) {
+                        Log.e("Tag", "InputStream's close() method failed");
+                    } catch (NullPointerException e) {
+                        Log.e("Tag", "tried to access InputStream while it was null");
+                    }
+
+                    try {
+                        btOutputStream.close();
+                        btOutputStream = null;
+                    } catch (IOException e) {
+                        Log.e("Tag", "OutputStream's close() method failed");
+                    } catch (NullPointerException e) {
+                        Log.e("Tag", "tried to access OutputStream while it was null");
+                    }
+                    try {
+                        btSocket.close();
+                        btSocket = null;
+                    } catch (IOException e) {
+                        Log.e("Tag", "Socket's close() method failed");
+                    } catch (NullPointerException e) {
+                        Log.e("Tag", "tried to access btSocket while it was null");
+                    }
+                }
             }
             else {
                 btSocket = null;
@@ -292,11 +401,15 @@ public class Connexion extends AppCompatActivity {
             String action = intent.getAction();
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 // Device Found
-                Log.i("Tag", "DeviceFound");
+                Log.i("Tag", "Device Found");
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 otherDevices.add(device);
-                if (!Contains(otherAdapter, device.getName())) {
-                    otherAdapter.add(device.getName());
+                String name = device.getName();
+                if (name == null) {
+                    name = device.getAddress();
+                }
+                if (!Contains(otherAdapter, name)) {
+                    otherAdapter.add(name);
                 }
             }
         }
@@ -329,7 +442,7 @@ public class Connexion extends AppCompatActivity {
                     Intent mintent = new Intent(getApplicationContext(), Connexion.class);
                     startActivity(mintent);
                 }
-                Toast.makeText(Connexion.this, R.string.connexion_with_host_ended, Toast.LENGTH_LONG).show();
+                Toast.makeText(Connexion.this, R.string.connexion_with_host_ended, Toast.LENGTH_SHORT).show();
             }
         }
     };
@@ -420,7 +533,7 @@ public class Connexion extends AppCompatActivity {
     private boolean Contains(ArrayAdapter<String> theAdapter, String element) {
         if (!theAdapter.isEmpty()) {
             for (int i = 0; i < theAdapter.getCount(); i++) {
-                if (theAdapter.getItem(i).equals(element)) {
+                if (Objects.requireNonNull(theAdapter.getItem(i)).equals(element)) {
                     return true;
                 }
             }
@@ -455,4 +568,16 @@ public class Connexion extends AppCompatActivity {
             Log.e("Tag", "Unregistering receivermReceiverActionAclDisconnected failed");
         }
     }
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
+
+
+
+
 }

@@ -200,6 +200,7 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
         shipsPlaced = 5;
         findViewById(R.id.startGameLayout).setVisibility(View.VISIBLE);
         findViewById(R.id.shipsLayout).setVisibility(View.GONE);
+        DeselectSelectedShip();
     }
 
     //Retirer tous les  bateaux de la grille
@@ -310,20 +311,22 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
                 }
             } catch (IOException e) {
                 Log.e("Tag", "btOutputStream's write() method failed", e);
+                Intent intent = new Intent(getApplicationContext(), Connexion.class);
+                startActivity(intent);
             }
 
             //Recevoir le data des ships de l'adversaire
             try {
                 for (int i = 0; i < 5; i++) {
-                    Log.i("Tag", "Before recv "+i);
                     byte[] buffer = new byte[2*shipsLengths[i]];
                     Connexion.btInputStream.read(buffer);
                     String str = new String(buffer);
                     oppShipCoords[i] = str;
-                    Log.i("Tag", "After recv "+i+" Received : "+oppShipCoords[i]);
                 }
             } catch (IOException e) {
                 Log.e("Tag", "btInputStream's read() method failed", e);
+                Intent intent = new Intent(getApplicationContext(), Connexion.class);
+                startActivity(intent);
             }
         } else {
             //Player 2 : Receive -> Send
@@ -331,15 +334,15 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
             //Recevoir le data des ships de l'adversaire
             try {
                 for (int i = 0; i < 5; i++) {
-                    Log.i("Tag", "Before recv "+i);
                     byte[] buffer = new byte[2*shipsLengths[i]];
                     Connexion.btInputStream.read(buffer);
                     String str = new String(buffer);
                     oppShipCoords[i] = str;
-                    Log.i("Tag", "After recv "+i+" Received : "+oppShipCoords[i]);
                 }
             } catch (IOException e) {
                 Log.e("Tag", "btInputStream's read() method failed", e);
+                Intent intent = new Intent(getApplicationContext(), Connexion.class);
+                startActivity(intent);
             }
 
             //Envoyer les coordonnées des bateaux placés a l'adversaire

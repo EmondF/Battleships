@@ -107,35 +107,14 @@
                             app:autoSizeStepGranularity="2sp"
                             android:textColor="@color/Black"
                             android:textStyle="bold"/>
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="0dp"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:text="@string/rejouer"
-                            app:autoSizeTextType="uniform"
-                            app:autoSizeMinTextSize="12sp"
-                            app:autoSizeMaxTextSize="100sp"
-                            app:autoSizeStepGranularity="2sp"
-                            android:textColor="@color/Black"/>
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="0dp"
-                            android:layout_weight="1">
 
-                            <Button
-                                android:layout_width="0dp"
-                                android:layout_height="match_parent"
-                                android:layout_weight="1"
-                                android:text="@string/oui"
-                                android:onClick="Rematch" />
-                            <Button
-                                android:layout_width="0dp"
-                                android:layout_height="match_parent"
-                                android:layout_weight="1"
-                                android:text="@string/non"
-                                android:onClick="NoRematch" />
-                        </LinearLayout>
+                        <Button
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="0.5"
+                            android:text= "@string/retour_au_menu"
+                            android:onClick="GoBackToMenu" />
+
                     </LinearLayout>
 
                     <Button

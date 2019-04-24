@@ -264,7 +264,6 @@ public class ShipGridView extends View {
     }
 
     public int AttackCell(int cellX, int cellY) {
-
         if(bsGrid[cellX][cellY].hasShip) {
             //Un bateau est touché
             hit.add(bsGrid[cellX][cellY]);

@@ -55,6 +55,7 @@ public class Game extends AppCompatActivity implements View.OnTouchListener {
         if (!Connexion.player1) {
             //L'adversaire commence
             tv_turn_info.setText(R.string.opp_turn);
+            findViewById(R.id.surrender_btn).setVisibility(View.INVISIBLE);
             myTurn = false;
         }
         else {
@@ -97,6 +98,12 @@ public class Game extends AppCompatActivity implements View.OnTouchListener {
                     Connexion.btInputStream.read(buffer);
                 } catch (IOException e) {
                     Log.e("Tag", "Failed to read buffer");
+                    Intent intent = new Intent(getApplicationContext(), Connexion.class);
+                    startActivity(intent);
+                } catch (NullPointerException e) {
+                    Log.e("Tag", "btInputStream is null");
+                    Intent intent = new Intent(getApplicationContext(), Connexion.class);
+                    startActivity(intent);
                 }
                 Log.i("Tag", "Received an attack");
                 final String coordinates = new String(buffer);
@@ -107,11 +114,13 @@ public class Game extends AppCompatActivity implements View.OnTouchListener {
                         if (coordinates.equals("ff")) {
                             GameEnd(true);
                         } else {
-                            myRemainingShipCells = 17 - myGridRef.AttackCell(
-                                    Character.getNumericValue(coordinates.charAt(0)),
-                                    Character.getNumericValue(coordinates.charAt(1)));
+                            int cellX = Character.getNumericValue(coordinates.charAt(0));
+                            int cellY = Character.getNumericValue(coordinates.charAt(1));
+                            if (cellX != -1 && cellY != -1)
+                                myRemainingShipCells = 17 - myGridRef.AttackCell(cellX, cellY);
                         }
                         tv_turn_info.setText(R.string.your_turn);
+                        findViewById(R.id.surrender_btn).setVisibility(View.VISIBLE);
                         myTurn = true;
                         if (myRemainingShipCells == 0) {
                             GameEnd(false);
@@ -137,10 +146,13 @@ public class Game extends AppCompatActivity implements View.OnTouchListener {
                         Connexion.btOutputStream.write(coordinates.getBytes());
                     } catch (IOException e) {
                         Log.e("Tag", "Failed to write to btOutputStream");
+                        Intent intent = new Intent(getApplicationContext(), Connexion.class);
+                        startActivity(intent);
                     }
                     oppRemainingShipCells = 17 - oppGridRef.AttackCell(cellX, cellY);
                     //Redonne le tour a ladversaire
                     tv_turn_info.setText(R.string.opp_turn);
+                    findViewById(R.id.surrender_btn).setVisibility(View.INVISIBLE);
                     myTurn = false;
                     if (oppRemainingShipCells == 0) {
                         //Victory
@@ -162,6 +174,8 @@ public class Game extends AppCompatActivity implements View.OnTouchListener {
             Connexion.btOutputStream.write("ff".getBytes());
         } catch (IOException e) {
             Log.e("Tag", "Failed to write to btOutputStream");
+            Intent intent = new Intent(getApplicationContext(), Connexion.class);
+            startActivity(intent);
         }
         Intent intent = new Intent(getApplicationContext(), Connexion.class);
         startActivity(intent);
@@ -181,16 +195,20 @@ public class Game extends AppCompatActivity implements View.OnTouchListener {
         }
     }
 
-    public void Rematch(View view) {
-        Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
-        startActivity(intent);
-    }
-
-    public void NoRematch(View view) {
+    public void GoBackToMenu(View view) {
         Intent intent = new Intent(getApplicationContext(), Connexion.class);
         startActivity(intent);
     }
 
+
+
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.i("Tag", "Game - onStop()");
+        gameEnded = true;
+    }
     @Override
     protected void onDestroy() {
         super.onDestroy();

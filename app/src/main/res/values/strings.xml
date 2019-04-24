@@ -19,7 +19,7 @@
     <string name="mes_bateaux">Mes Bateaux</string>
     <string name="your_turn">C\'est votre tour d\'attaquer</string>
     <string name="opp_turn">En attente que l\'adversaire attaque…</string>
-    <string name="abandonner">/ff</string>
+    <string name="abandonner">Abandonner</string>
     <string name="aleatoire">Aléatoire</string>
     <string name="reinitialiser_la_grille">Réinitialiser la grille</string>
     <string name="connexion">Connexion</string>
@@ -29,5 +29,9 @@
     <string name="non">Non</string>
     <string name="victory">Victoire! :^D</string>
     <string name="defeat">Défaite… >:^(</string>
+    <string name="retour_au_menu">Retour au menu</string>
+    <string name="Yes">Yes</string>
+    <string name="No">No</string>
+    <string name="connexion_denied">L\'adversaire a refusé la connexion</string>
 
 </resources>
