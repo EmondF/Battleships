@@ -7,4 +7,6 @@
     <color name="Black">#000000</color>
     <color name="White">#ffffff</color>
     <color name="cornflower_blue">#6495ED</color>
+    <color name="Green">#00c853</color>
+    <color name="Red">#ff1744</color>
 </resources>

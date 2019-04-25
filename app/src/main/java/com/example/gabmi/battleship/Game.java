@@ -55,11 +55,13 @@ public class Game extends AppCompatActivity implements View.OnTouchListener {
         if (!Connexion.player1) {
             //L'adversaire commence
             tv_turn_info.setText(R.string.opp_turn);
+            tv_turn_info.setTextColor(getResources().getColor(R.color.Red));
             findViewById(R.id.surrender_btn).setVisibility(View.INVISIBLE);
             myTurn = false;
         }
         else {
             tv_turn_info.setText(R.string.your_turn);
+            tv_turn_info.setTextColor(getResources().getColor(R.color.Green));
             myTurn = true;
         }
         Log.i("Tag", "Fin onCreate - Game");
@@ -98,11 +100,15 @@ public class Game extends AppCompatActivity implements View.OnTouchListener {
                     Connexion.btInputStream.read(buffer);
                 } catch (IOException e) {
                     Log.e("Tag", "Failed to read buffer");
-                    Intent intent = new Intent(getApplicationContext(), Connexion.class);
+                    gameEnded = true;
+                    Intent intent = new Intent(Game.this, Connexion.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP |Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     startActivity(intent);
                 } catch (NullPointerException e) {
                     Log.e("Tag", "btInputStream is null");
-                    Intent intent = new Intent(getApplicationContext(), Connexion.class);
+                    gameEnded = true;
+                    Intent intent = new Intent(Game.this, Connexion.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP |Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     startActivity(intent);
                 }
                 Log.i("Tag", "Received an attack");
@@ -113,17 +119,19 @@ public class Game extends AppCompatActivity implements View.OnTouchListener {
                     public void run() {
                         if (coordinates.equals("ff")) {
                             GameEnd(true);
-                        } else {
+                        }
+                        else {
                             int cellX = Character.getNumericValue(coordinates.charAt(0));
                             int cellY = Character.getNumericValue(coordinates.charAt(1));
                             if (cellX != -1 && cellY != -1)
                                 myRemainingShipCells = 17 - myGridRef.AttackCell(cellX, cellY);
-                        }
-                        tv_turn_info.setText(R.string.your_turn);
-                        findViewById(R.id.surrender_btn).setVisibility(View.VISIBLE);
-                        myTurn = true;
-                        if (myRemainingShipCells == 0) {
-                            GameEnd(false);
+                            tv_turn_info.setText(R.string.your_turn);
+                            tv_turn_info.setTextColor(getResources().getColor(R.color.Green));
+                            findViewById(R.id.surrender_btn).setVisibility(View.VISIBLE);
+                            myTurn = true;
+                            if (myRemainingShipCells == 0) {
+                                GameEnd(false);
+                            }
                         }
                     }
                 });
@@ -146,12 +154,15 @@ public class Game extends AppCompatActivity implements View.OnTouchListener {
                         Connexion.btOutputStream.write(coordinates.getBytes());
                     } catch (IOException e) {
                         Log.e("Tag", "Failed to write to btOutputStream");
-                        Intent intent = new Intent(getApplicationContext(), Connexion.class);
+                        gameEnded = true;
+                        Intent intent = new Intent(this, Connexion.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP |Intent.FLAG_ACTIVITY_SINGLE_TOP);
                         startActivity(intent);
                     }
                     oppRemainingShipCells = 17 - oppGridRef.AttackCell(cellX, cellY);
                     //Redonne le tour a ladversaire
                     tv_turn_info.setText(R.string.opp_turn);
+                    tv_turn_info.setTextColor(getResources().getColor(R.color.Red));
                     findViewById(R.id.surrender_btn).setVisibility(View.INVISIBLE);
                     myTurn = false;
                     if (oppRemainingShipCells == 0) {
@@ -174,10 +185,12 @@ public class Game extends AppCompatActivity implements View.OnTouchListener {
             Connexion.btOutputStream.write("ff".getBytes());
         } catch (IOException e) {
             Log.e("Tag", "Failed to write to btOutputStream");
-            Intent intent = new Intent(getApplicationContext(), Connexion.class);
+            Intent intent = new Intent(this, Connexion.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP |Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
         }
-        Intent intent = new Intent(getApplicationContext(), Connexion.class);
+        Intent intent = new Intent(this, Connexion.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP |Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
     }
 
@@ -196,12 +209,17 @@ public class Game extends AppCompatActivity implements View.OnTouchListener {
     }
 
     public void GoBackToMenu(View view) {
-        Intent intent = new Intent(getApplicationContext(), Connexion.class);
+        Intent intent = new Intent(this, Connexion.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP |Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
     }
 
-
-
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(this, Connexion.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP |Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+    }
 
     @Override
     protected void onStop() {

@@ -170,23 +170,6 @@
             android:layout_weight="85"
             android:visibility="gone">
 
-            <TextView
-                android:id="@+id/waiting_opponent_tv"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:autoSizeTextType="uniform"
-                app:autoSizeMinTextSize="12sp"
-                app:autoSizeMaxTextSize="100sp"
-                app:autoSizeStepGranularity="2sp"
-                android:gravity="center"
-                android:textSize="20sp"
-                android:text="@string/waiting_for_opponent"
-                android:textColor="@color/White"
-                android:textStyle="bold"
-                android:layout_above="@+id/StartBtn"
-                android:visibility="invisible"
-                />
-
             <Button
                 android:id="@+id/ResetGridBtn"
                 android:layout_width="match_parent"

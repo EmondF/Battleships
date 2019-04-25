@@ -48,7 +48,6 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
         myAircraftCarrier = new AircraftCarrier(R.id.AircraftCarrier, findViewById(R.id.AircraftCarrier));
         shipsPlaced = 0;
 
-        Intent intent = getIntent();
         oppShipCoords = new String[5];
         myShipCoords = new String[5];
 
@@ -69,21 +68,9 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
         Log.i("Tag", "ShipPlacement - onStart()");
         super.onStart();
         if (Connexion.btOutputStream==null || Connexion.btInputStream==null || Connexion.btSocket==null) {
-            Intent intent = new Intent(getApplicationContext(), Connexion.class);
-            startActivity(intent);
+            finish();
         }
     }
-
-    @Override
-    protected void onRestart() {
-        Log.i("Tag", "ShipPlacement - onRestart()");
-        super.onRestart();
-        if (Connexion.btOutputStream==null || Connexion.btInputStream==null || Connexion.btSocket==null) {
-            Intent intent = new Intent(getApplicationContext(), Connexion.class);
-            startActivity(intent);
-        }
-    }
-
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -259,10 +246,7 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
     }
 
     //Échange les informations de grid avec l'adversaire et start la partie
-
     public void StartGame(View v) {
-
-        //findViewById(R.id.waiting_opponent_tv).setVisibility(View.VISIBLE);
 
         /*Remplir les Strings de coordonnées des 5 bateaux placés,
          où chaque coordonnée = 2 caractères (Ex : Ligne 3, colonne 5 = "35")*/
@@ -311,8 +295,7 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
                 }
             } catch (IOException e) {
                 Log.e("Tag", "btOutputStream's write() method failed", e);
-                Intent intent = new Intent(getApplicationContext(), Connexion.class);
-                startActivity(intent);
+                finish();
             }
 
             //Recevoir le data des ships de l'adversaire
@@ -325,12 +308,12 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
                 }
             } catch (IOException e) {
                 Log.e("Tag", "btInputStream's read() method failed", e);
-                Intent intent = new Intent(getApplicationContext(), Connexion.class);
-                startActivity(intent);
+                finish();
             }
         } else {
             //Player 2 : Receive -> Send
             Log.i("Tag", "Player2");
+
             //Recevoir le data des ships de l'adversaire
             try {
                 for (int i = 0; i < 5; i++) {
@@ -341,8 +324,7 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
                 }
             } catch (IOException e) {
                 Log.e("Tag", "btInputStream's read() method failed", e);
-                Intent intent = new Intent(getApplicationContext(), Connexion.class);
-                startActivity(intent);
+                finish();
             }
 
             //Envoyer les coordonnées des bateaux placés a l'adversaire
@@ -356,9 +338,7 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
                 Log.e("Tag", "btOutputStream's write() method failed", e);
             }
         }
-        //findViewById(R.id.waiting_opponent_tv).setVisibility(View.INVISIBLE);
-
-        Intent intent = new Intent(getApplicationContext(), Game.class);
+        Intent intent = new Intent(this, Game.class);
         startActivity(intent);
     }
 

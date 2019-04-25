@@ -1,11 +1,13 @@
 package com.example.gabmi.battleship;
 
 import android.Manifest;
+import android.app.ActivityManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -174,6 +176,7 @@ public class Connexion extends AppCompatActivity {
         }
 
         //Starts listen thread
+        mHandler = new Handler();
         connected = false;
 
         listenThread = new Thread(listenThreadAction);
@@ -182,11 +185,14 @@ public class Connexion extends AppCompatActivity {
         otherSpinner.setVisibility(View.INVISIBLE);
         connectOtherBtn.setVisibility(View.INVISIBLE);
         informationsTextView.setVisibility(View.INVISIBLE);
+
+
     }
 
     private Runnable listenThreadAction = new Runnable() {
         @Override
         public void run()  {
+            //Reinitialisation des streams et du socket
             try {
                 btInputStream.close();
                 btInputStream = null;
@@ -214,12 +220,14 @@ public class Connexion extends AppCompatActivity {
                 Log.e("Tag", "tried to access btSocket while it was null");
             }
 
+            //Listen
             try {
                 btServerSocket = myBtAdapter.listenUsingInsecureRfcommWithServiceRecord("BattleShip", uuid);
             } catch (IOException e) {
                 Log.e("Tag", "Socket's listen() method failed");
             }
 
+            connected = false;
             while (!connected) {
                 try {
                     Log.i("Tag", "Listening");
@@ -228,7 +236,7 @@ public class Connexion extends AppCompatActivity {
                     Log.e("Tag", "Socket's accept() method failed");
                     break;
                 }
-                if (btSocket!= null) {
+                if (btSocket != null) {
                     try {
                         btServerSocket.close();
                     } catch (IOException e) {
@@ -244,17 +252,52 @@ public class Connexion extends AppCompatActivity {
                     } catch (IOException e) {
                         Log.e("Tag", "socket's getInputStream() method failed");
                     }
-
-                    //Start activity "Ship placement" as player 2
-                    Log.i("Tag", " Other activity started 2");
-                    registerReceiver(mReceiverActionAclDisconnected, filter_disconnected);
-                    player1 = false;
-                    Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
-                    startActivity(intent);
                     connected = true;
+                    runOnUiThread(new Runnable() {
+                                      @Override
+                                      public void run() {
+                                          AlertDialog alertdialog = new AlertDialog.Builder(Connexion.this)
+                                                  .setTitle("Un adversaire vous défie !")
+                                                  .setMessage(btSocket.getRemoteDevice().getName() + " tente de se connecter.\nAcceptez-vous ?")
+                                                  .setIcon(R.drawable.app_logo)
+                                                  .setPositiveButton(R.string.Yes,
+                                                          new DialogInterface.OnClickListener() {
+                                                              public void onClick(DialogInterface dialog, int id) {
+                                                                  try {
+                                                                      btOutputStream.write("y".getBytes());
+                                                                      //Start activity "Ship placement" as player 2
+                                                                      Log.i("Tag", " Other activity started 2");
+                                                                      registerReceiver(mReceiverActionAclDisconnected, filter_disconnected);
+                                                                      player1 = false;
+                                                                      Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
+                                                                      startActivity(intent);
+
+                                                                  }
+                                                                  catch (IOException e) {
+                                                                      Log.e("Tag", "Writing failed");
+                                                                  }
+                                                              }
+                                                          })
+                                                  .setNegativeButton(R.string.No,
+                                                          new DialogInterface.OnClickListener() {
+                                                              public void onClick(DialogInterface dialog, int id) {
+                                                                  try {
+                                                                      btOutputStream.write("n".getBytes());
+                                                                      listenThread = new Thread(listenThreadAction);
+                                                                      listenThread.start();
+                                                                  }
+                                                                  catch (IOException e) {
+                                                                      Log.e("Tag", "Writing failed");
+                                                                  }
+                                                              }
+                                                          })
+                                                  .show();
+                                          alertdialog.setCanceledOnTouchOutside(false);
+                                      }
+                    });
                 }
             }
-            Log.i("Tag", "Thread ended");
+            Log.i("Tag", "Listening Thread ended");
         }
     };
 
@@ -297,12 +340,28 @@ public class Connexion extends AppCompatActivity {
                     Log.e("Tag", "socket's getInputStream() method failed");
                 }
 
-                //Starts activity "Ship placement" as player 1
-                Log.i("Tag", " Other activity started 1");
-                registerReceiver(mReceiverActionAclDisconnected, filter_disconnected);
-                player1 = true;
-                Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
-                startActivity(intent);
+                byte [] buffer = new byte[1];
+                try {
+                    btInputStream.read(buffer);
+                } catch (IOException e) {
+                    Log.e("Tag", "Reading failed");
+                    finish();
+                }
+                String b = new String(buffer);
+
+                if (b.equals("y")) {
+                    //Starts activity "Ship placement" as player 1
+                    Log.i("Tag", " Other activity started 1");
+                    registerReceiver(mReceiverActionAclDisconnected, filter_disconnected);
+                    player1 = true;
+                    Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
+                    startActivity(intent);
+                }
+                else {
+                    Toast.makeText(getApplicationContext(), getString(R.string.connexion_denied), Toast.LENGTH_LONG).show();
+                    listenThread = new Thread(listenThreadAction);
+                    listenThread.start();
+                }
             }
             else {
                 btSocket = null;
@@ -366,6 +425,7 @@ public class Connexion extends AppCompatActivity {
                 if (getApplicationContext() != Connexion.this) {
                     Intent mintent = new Intent(getApplicationContext(), Connexion.class);
                     startActivity(mintent);
+                    finish();
                 }
                 Toast.makeText(Connexion.this, R.string.connexion_with_host_ended, Toast.LENGTH_SHORT).show();
             }
@@ -458,8 +518,15 @@ public class Connexion extends AppCompatActivity {
     private boolean Contains(ArrayAdapter<String> theAdapter, String element) {
         if (!theAdapter.isEmpty()) {
             for (int i = 0; i < theAdapter.getCount(); i++) {
-                if (Objects.requireNonNull(theAdapter.getItem(i)).equals(element)) {
-                    return true;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    if (Objects.requireNonNull(theAdapter.getItem(i)).equals(element)) {
+                        return true;
+                    }
+                }
+                else {
+                    if (theAdapter.getItem(i).equals(element)) {
+                        return true;
+                    }
                 }
             }
         }
@@ -493,16 +560,4 @@ public class Connexion extends AppCompatActivity {
             Log.e("Tag", "Unregistering receivermReceiverActionAclDisconnected failed");
         }
     }
-
-    @Override
-    public void onBackPressed() {
-        Intent intent = new Intent(Intent.ACTION_MAIN);
-        intent.addCategory(Intent.CATEGORY_HOME);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-    }
-
-
-
-
 }

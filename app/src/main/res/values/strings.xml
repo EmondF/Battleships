@@ -24,14 +24,14 @@
     <string name="reinitialiser_la_grille">Réinitialiser la grille</string>
     <string name="connexion">Connexion</string>
     <string name="waiting_for_opponent">En attente de l\'adversaire…</string>
-    <string name="rejouer">Rejouer ?</string>
+    <string name="rejouer">Rejouer</string>
     <string name="oui">Oui</string>
     <string name="non">Non</string>
     <string name="victory">Victoire! :^D</string>
     <string name="defeat">Défaite… >:^(</string>
     <string name="retour_au_menu">Retour au menu</string>
-    <string name="Yes">Yes</string>
-    <string name="No">No</string>
+    <string name="Yes">Oui</string>
+    <string name="No">Non</string>
     <string name="connexion_denied">L\'adversaire a refusé la connexion</string>
 
 </resources>
