@@ -253,49 +253,57 @@ public class Connexion extends AppCompatActivity {
                         Log.e("Tag", "socket's getInputStream() method failed");
                     }
                     connected = true;
-                    runOnUiThread(new Runnable() {
-                                      @Override
-                                      public void run() {
-                                          AlertDialog alertdialog = new AlertDialog.Builder(Connexion.this)
-                                                  .setTitle("Un adversaire vous défie !")
-                                                  .setMessage(btSocket.getRemoteDevice().getName() + " tente de se connecter.\nAcceptez-vous ?")
-                                                  .setIcon(R.drawable.app_logo)
-                                                  .setPositiveButton(R.string.Yes,
-                                                          new DialogInterface.OnClickListener() {
-                                                              public void onClick(DialogInterface dialog, int id) {
-                                                                  try {
-                                                                      btOutputStream.write("y".getBytes());
-                                                                      //Start activity "Ship placement" as player 2
-                                                                      Log.i("Tag", " Other activity started 2");
-                                                                      registerReceiver(mReceiverActionAclDisconnected, filter_disconnected);
-                                                                      player1 = false;
-                                                                      Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
-                                                                      startActivity(intent);
 
-                                                                  }
-                                                                  catch (IOException e) {
-                                                                      Log.e("Tag", "Writing failed");
-                                                                  }
-                                                              }
-                                                          })
-                                                  .setNegativeButton(R.string.No,
-                                                          new DialogInterface.OnClickListener() {
-                                                              public void onClick(DialogInterface dialog, int id) {
-                                                                  try {
-                                                                      btOutputStream.write("n".getBytes());
-                                                                      listenThread = new Thread(listenThreadAction);
-                                                                      listenThread.start();
-                                                                  }
-                                                                  catch (IOException e) {
-                                                                      Log.e("Tag", "Writing failed");
-                                                                  }
-                                                              }
-                                                          })
-                                                  .show();
-                                          alertdialog.setCanceledOnTouchOutside(false);
-                                      }
-                    });
-                }
+
+                    if(!Connexion.this.isFinishing())
+                    {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                AlertDialog alertdialog = new AlertDialog.Builder(Connexion.this)
+                                        .setTitle("Un adversaire vous défie !")
+                                        .setMessage(btSocket.getRemoteDevice().getName() + " tente de se connecter.\nAcceptez-vous ?")
+                                        .setIcon(R.drawable.app_logo)
+                                        .setPositiveButton(R.string.Yes,
+                                                new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int id) {
+                                                        try {
+                                                            btOutputStream.write("y".getBytes());
+                                                            //Start activity "Ship placement" as player 2
+                                                            Log.i("Tag", " Other activity started 2");
+                                                            registerReceiver(mReceiverActionAclDisconnected, filter_disconnected);
+                                                            player1 = false;
+                                                            Intent intent = new Intent(getApplicationContext(), ShipPlacement.class);
+                                                            startActivity(intent);
+
+                                                        }
+                                                        catch (IOException e) {
+                                                            Log.e("Tag", "Writing failed");
+                                                        }
+                                                    }
+                                                })
+                                        .setNegativeButton(R.string.No,
+                                                new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int id) {
+                                                        try {
+                                                            btOutputStream.write("n".getBytes());
+                                                            listenThread = new Thread(listenThreadAction);
+                                                            listenThread.start();
+                                                        }
+                                                        catch (IOException e) {
+                                                            Log.e("Tag", "Writing failed");
+                                                        }
+                                                    }
+                                                })
+
+                                        .show();
+                                alertdialog.setCanceledOnTouchOutside(false);
+                            }
+                        });
+
+                    }
+
+                   }
             }
             Log.i("Tag", "Listening Thread ended");
         }
