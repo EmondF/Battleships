@@ -40,6 +40,7 @@ public class Connexion extends AppCompatActivity {
 
     public static UUID uuid;
     public static boolean player1;
+    private boolean isPause;
 
     private Button getPairedBtn;
     private Button connectPairedBtn;
@@ -75,6 +76,8 @@ public class Connexion extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connexion);
         Log.i("Tag", "Connexion - onCreate()");
+
+        isPause = false;
 
         pairedAdapter = new ArrayAdapter<String>(this, R.layout.spinner_item, R.id.tv_spinner);
         pairedAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
@@ -253,10 +256,9 @@ public class Connexion extends AppCompatActivity {
                         Log.e("Tag", "socket's getInputStream() method failed");
                     }
                     connected = true;
+                    Log.i("Tag", "is pause =:" + isPause);
 
-
-                    if(!Connexion.this.isFinishing())
-                    {
+                    if(!Connexion.this.isFinishing() && !isPause){
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -300,6 +302,16 @@ public class Connexion extends AppCompatActivity {
                                 alertdialog.setCanceledOnTouchOutside(false);
                             }
                         });
+
+                    }else{
+                        try {
+                            btOutputStream.write("n".getBytes());
+                            listenThread = new Thread(listenThreadAction);
+                            listenThread.start();
+                        }
+                        catch (IOException e) {
+                            Log.e("Tag", "Writing failed");
+                        }
 
                     }
 
@@ -546,6 +558,19 @@ public class Connexion extends AppCompatActivity {
         super.onStop();
         Log.i("Tag", "Connexion - onStop()");
     }
+
+    protected void onPause() {
+        super.onPause();
+        isPause = true;
+        Log.i("Tag", "Connexion - onPause()");
+    }
+
+    protected void onResume() {
+        super.onResume();
+        isPause = false;
+        Log.i("Tag", "Connexion - onResume()");
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
