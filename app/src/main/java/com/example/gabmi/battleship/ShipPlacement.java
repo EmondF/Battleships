@@ -32,6 +32,7 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
     Navire SelectedShip;
     ShipGridView placementGridRef;
     int shipsPlaced;
+    boolean startGameReady;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +53,7 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
         myShipCoords = new String[5];
 
         placementGridRef.getViewTreeObserver().addOnPreDrawListener(gridDrawnListener);
+        startGameReady = true;
     }
 
     private final ViewTreeObserver.OnPreDrawListener gridDrawnListener = new ViewTreeObserver.OnPreDrawListener() {
@@ -247,99 +249,104 @@ public class ShipPlacement extends AppCompatActivity  implements View.OnTouchLis
 
     //Échange les informations de grid avec l'adversaire et start la partie
     public void StartGame(View v) {
-
-        /*Remplir les Strings de coordonnées des 5 bateaux placés,
+        if (startGameReady) {
+            startGameReady = false;
+            /*Remplir les Strings de coordonnées des 5 bateaux placés,
          où chaque coordonnée = 2 caractères (Ex : Ligne 3, colonne 5 = "35")*/
-        ArrayList<GridCell> shipList = placementGridRef.GetShipList();
-        StringBuilder destroyerCoords = new StringBuilder();
-        StringBuilder submarineCoords = new StringBuilder();
-        StringBuilder cruiserCoords = new StringBuilder();
-        StringBuilder battleshipCoords = new StringBuilder();
-        StringBuilder aircraftCarrierCoords = new StringBuilder();
+            ArrayList<GridCell> shipList = placementGridRef.GetShipList();
+            StringBuilder destroyerCoords = new StringBuilder();
+            StringBuilder submarineCoords = new StringBuilder();
+            StringBuilder cruiserCoords = new StringBuilder();
+            StringBuilder battleshipCoords = new StringBuilder();
+            StringBuilder aircraftCarrierCoords = new StringBuilder();
 
-        for (GridCell cell : shipList) {
-            switch (cell.navireRef.getNom()) {
-                case "Destroyer":
-                    destroyerCoords.append(cell.coordonnees[0]).append(cell.coordonnees[1]);
-                    break;
-                case "Submarine":
-                    submarineCoords.append(cell.coordonnees[0]).append(cell.coordonnees[1]);
-                    break;
-                case "Cruiser":
-                    cruiserCoords.append(cell.coordonnees[0]).append(cell.coordonnees[1]);
-                    break;
-                case "Battleship":
-                    battleshipCoords.append(cell.coordonnees[0]).append(cell.coordonnees[1]);
-                    break;
-                case "Aircraft Carrier":
-                    aircraftCarrierCoords.append(cell.coordonnees[0]).append(cell.coordonnees[1]);
-                    break;
+            for (GridCell cell : shipList) {
+                switch (cell.navireRef.getNom()) {
+                    case "Destroyer":
+                        destroyerCoords.append(cell.coordonnees[0]).append(cell.coordonnees[1]);
+                        break;
+                    case "Submarine":
+                        submarineCoords.append(cell.coordonnees[0]).append(cell.coordonnees[1]);
+                        break;
+                    case "Cruiser":
+                        cruiserCoords.append(cell.coordonnees[0]).append(cell.coordonnees[1]);
+                        break;
+                    case "Battleship":
+                        battleshipCoords.append(cell.coordonnees[0]).append(cell.coordonnees[1]);
+                        break;
+                    case "Aircraft Carrier":
+                        aircraftCarrierCoords.append(cell.coordonnees[0]).append(cell.coordonnees[1]);
+                        break;
+                }
             }
+            myShipCoords[0] = destroyerCoords.toString();
+            myShipCoords[1] = submarineCoords.toString();
+            myShipCoords[2] = cruiserCoords.toString();
+            myShipCoords[3] = battleshipCoords.toString();
+            myShipCoords[4] = aircraftCarrierCoords.toString();
+
+            if (Connexion.player1) {
+                //Player 1 : Send -> Receive
+                Log.i("Tag", "Player1");
+
+                //Envoyer les coordonnées des bateaux placés a l'adversaire
+                try {
+                    for (int i = 0; i < 5; i++) {
+                        Log.i("Tag", "Before send "+i);
+                        Connexion.btOutputStream.write(myShipCoords[i].getBytes());
+                        Log.i("Tag", "After send "+i+" Sent : "+myShipCoords[i]);
+                    }
+                } catch (IOException e) {
+                    Log.e("Tag", "btOutputStream's write() method failed", e);
+                    finish();
+                }
+
+                //Recevoir le data des ships de l'adversaire
+                try {
+                    for (int i = 0; i < 5; i++) {
+                        byte[] buffer = new byte[2*shipsLengths[i]];
+                        Connexion.btInputStream.read(buffer);
+                        String str = new String(buffer);
+                        oppShipCoords[i] = str;
+                    }
+                } catch (IOException e) {
+                    Log.e("Tag", "btInputStream's read() method failed", e);
+                    finish();
+                }
+            } else {
+                //Player 2 : Receive -> Send
+                Log.i("Tag", "Player2");
+
+                //Recevoir le data des ships de l'adversaire
+                try {
+                    for (int i = 0; i < 5; i++) {
+                        byte[] buffer = new byte[2*shipsLengths[i]];
+                        Connexion.btInputStream.read(buffer);
+                        String str = new String(buffer);
+                        oppShipCoords[i] = str;
+                    }
+                } catch (IOException e) {
+                    Log.e("Tag", "btInputStream's read() method failed", e);
+                    finish();
+                }
+
+                //Envoyer les coordonnées des bateaux placés a l'adversaire
+                try {
+                    for (int i = 0; i < 5; i++) {
+                        Log.i("Tag", "Before send "+i);
+                        Connexion.btOutputStream.write(myShipCoords[i].getBytes());
+                        Log.i("Tag", "After send "+i+" Sent : "+myShipCoords[i]);
+                    }
+                } catch (IOException e) {
+                    Log.e("Tag", "btOutputStream's write() method failed", e);
+                }
+            }
+            Intent intent = new Intent(this, Game.class);
+            startActivity(intent);
+
         }
-        myShipCoords[0] = destroyerCoords.toString();
-        myShipCoords[1] = submarineCoords.toString();
-        myShipCoords[2] = cruiserCoords.toString();
-        myShipCoords[3] = battleshipCoords.toString();
-        myShipCoords[4] = aircraftCarrierCoords.toString();
 
-        if (Connexion.player1) {
-            //Player 1 : Send -> Receive
-            Log.i("Tag", "Player1");
 
-            //Envoyer les coordonnées des bateaux placés a l'adversaire
-            try {
-                for (int i = 0; i < 5; i++) {
-                    Log.i("Tag", "Before send "+i);
-                    Connexion.btOutputStream.write(myShipCoords[i].getBytes());
-                    Log.i("Tag", "After send "+i+" Sent : "+myShipCoords[i]);
-                }
-            } catch (IOException e) {
-                Log.e("Tag", "btOutputStream's write() method failed", e);
-                finish();
-            }
-
-            //Recevoir le data des ships de l'adversaire
-            try {
-                for (int i = 0; i < 5; i++) {
-                    byte[] buffer = new byte[2*shipsLengths[i]];
-                    Connexion.btInputStream.read(buffer);
-                    String str = new String(buffer);
-                    oppShipCoords[i] = str;
-                }
-            } catch (IOException e) {
-                Log.e("Tag", "btInputStream's read() method failed", e);
-                finish();
-            }
-        } else {
-            //Player 2 : Receive -> Send
-            Log.i("Tag", "Player2");
-
-            //Recevoir le data des ships de l'adversaire
-            try {
-                for (int i = 0; i < 5; i++) {
-                    byte[] buffer = new byte[2*shipsLengths[i]];
-                    Connexion.btInputStream.read(buffer);
-                    String str = new String(buffer);
-                    oppShipCoords[i] = str;
-                }
-            } catch (IOException e) {
-                Log.e("Tag", "btInputStream's read() method failed", e);
-                finish();
-            }
-
-            //Envoyer les coordonnées des bateaux placés a l'adversaire
-            try {
-                for (int i = 0; i < 5; i++) {
-                    Log.i("Tag", "Before send "+i);
-                    Connexion.btOutputStream.write(myShipCoords[i].getBytes());
-                    Log.i("Tag", "After send "+i+" Sent : "+myShipCoords[i]);
-                }
-            } catch (IOException e) {
-                Log.e("Tag", "btOutputStream's write() method failed", e);
-            }
-        }
-        Intent intent = new Intent(this, Game.class);
-        startActivity(intent);
     }
 
     @Override
